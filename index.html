@@ -210,8 +210,9 @@
 
     <section class="step" data-step="6">
       <h2 class="step-q">요금은 어떻게 내시나요?</h2>
-      <p class="step-sub">금액은 같습니다. <b>누가 내는지</b>만 달라집니다.<br>
-      선불로 하시면 접수를 마친 뒤 <b>카운터에서 결제</b>하시면 됩니다. 여기서는 받지 않습니다.</p>
+      <p class="step-sub"><b>금액은 둘 다 같습니다.</b> 누가 내는지만 다릅니다.<br>
+      <b>선불</b>은 보내는 분이 카운터에서, <b>착불</b>은 받는 분이 물건 받을 때 냅니다.<br>
+      어느 쪽이든 이 화면에서는 돈을 받지 않습니다.</p>
       <div class="pay-grid" id="payGrid"></div>
       <div id="payPicked"></div>
 
@@ -257,7 +258,7 @@
   const val = id => $(id).value.trim();
 
   // 쓰다 만 내용을 담아 둔다. 뒤로 가도, 위 메뉴로 나갔다 와도 남는다.
-  let D = Object.assign({ branch: '', area: '', category: '', payType: '선불',
+  let D = Object.assign({ branch: '', area: '', category: '', payType: '',
                           payMethod: '', note: '없음',
                           staffConfirm: false, agreeDamage: false, step: 1, seen: 1 },
                         Store.getDraft());
@@ -268,7 +269,7 @@
                     performance.getEntriesByType('navigation')[0]) || {}).type;
   if (navType === 'reload') {
     Store.clearDraft();
-    D = { branch: '', area: '', category: '', payType: '선불',
+    D = { branch: '', area: '', category: '', payType: '',
           payMethod: '', note: '없음',
           staffConfirm: false, agreeDamage: false, step: 1, seen: 1 };
   }
@@ -473,11 +474,12 @@
   function pickPay(v) {
     D.payType = v;
     $('payGrid').querySelectorAll('.pay').forEach(b => b.classList.toggle('on', b.dataset.value === v));
-    $('payPicked').innerHTML = '<div class="picked-line">' + v + ' 선택<span class="sub">' +
-      (v === '착불' ? '운송장에 착불로 찍힙니다. 받는 분이 물건 받을 때 냅니다.'
-                    : '지금 받습니다. 운송장에 선불로 찍힙니다.') +
-      ' 금액은 같습니다.</span></div>';
-    // 선불이면 지금 받아야 하니 무엇으로 낼지도 고른다
+    $('payPicked').innerHTML = '<div class="picked-line">' + v + '<span class="sub">' +
+      (v === '착불'
+        ? '운송장에 <b>착불</b>로 찍힙니다. <b>받는 분이 물건 받을 때</b> 냅니다. 지금 내실 것은 없습니다.'
+        : '운송장에 <b>선불</b>로 찍힙니다. 접수를 마치신 뒤 <b>카운터에서</b> 내시면 됩니다.') +
+      '</span></div>';
+    // 선불이면 카운터에서 무엇으로 낼지까지 미리 골라 둔다
     $('methodWrap').style.display = (v === '선불') ? 'block' : 'none';
     if (v === '착불') { D.payMethod = ''; $('methodPicked').innerHTML = ''; }
     keep(); sync();
@@ -794,9 +796,11 @@
 
   // ── 시작 ────────────────────────────────────────────────
   restore();
-  // 260807 처음부터 '선불' 인 척하면서 버튼은 안 눌린 것처럼 보였다.
-  // 그래서 아무도 누르지 않고 지나갔고, 결제 수단 칸은 숨은 채로 넘어갔다.
-  pickPay(D.payType || '선불');
+  // 260807 전에는 속으로 '선불' 로 정해 두고 버튼은 안 눌린 것처럼 보였다.
+  // 그래서 아무도 안 누르고 지나갔다. 그렇다고 선불을 미리 눌러 두면
+  // 이번엔 착불이 없어진 것처럼 보인다. 둘 다 안 누른 채로 두고,
+  // 고르기 전에는 다음으로 못 넘어가게 막는다. 누가 내는지는 손님이 정한다.
+  if (D.payType) pickPay(D.payType);
   if (D.payMethod) pickMethod(D.payMethod);
   if (D.branch) pickBranch(D.branch);
   if (D.area) pickArea(D.area);
