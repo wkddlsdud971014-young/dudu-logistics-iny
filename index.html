@@ -32,8 +32,7 @@
   </nav>
 
   <div class="panel wizard">
-    <div class="steps" id="dots"></div>
-    <p class="step-count" id="stepCount"></p>
+    <div class="steptabs" id="dots"></div>
 
     <section class="step" data-step="1">
       <h2 class="step-q">어디에서 접수하시나요?</h2>
@@ -70,9 +69,25 @@
       <div class="opt-grid" id="islandGrid"></div>
       <div class="search-none" id="areaNone" style="display:none"></div>
       <div id="areaPicked"></div>
+      <div class="f" id="dongWrap" style="display:none; margin-top:18px">
+        <label for="receiverDong">받는 곳 상세 주소</label>
+        <input type="text" id="receiverDong" placeholder="예: 노형동 / 용산구 청파동" autocomplete="off">
+        <p class="tip">구·동까지만 적어 주세요. 나머지 주소는 운송장을 붙일 때 적습니다.</p>
+      </div>
     </section>
 
     <section class="step" data-step="3">
+      <h2 class="step-q">무엇을 보내시나요?</h2>
+      <p class="step-sub">보내실 물건에 가장 가까운 것을 골라 주세요.</p>
+      <div class="cat-grid" id="catGrid"></div>
+      <div id="catPicked"></div>
+      <div class="cantsend">
+        <h4>보낼 수 없는 물건</h4>
+        <ul id="cantSendList"></ul>
+      </div>
+    </section>
+
+    <section class="step" data-step="4">
       <h2 class="step-q">누가 보내고, 누가 받나요?</h2>
       <div class="f">
         <label for="senderName">보내는 분</label>
@@ -92,7 +107,7 @@
       </div>
     </section>
 
-    <section class="step" data-step="4">
+    <section class="step" data-step="5">
       <h2 class="step-q">무엇을 보내시나요?</h2>
       <p class="step-sub">무게와 크기로 요금이 정해집니다.</p>
       <div class="f">
@@ -122,7 +137,7 @@
       </div>
     </section>
 
-    <section class="step" data-step="5">
+    <section class="step" data-step="6">
       <h2 class="step-q">이대로 접수할까요?</h2>
       <div class="big-price" id="bigPrice"></div>
       <div class="sum" id="summary"></div>
@@ -146,16 +161,16 @@
 <script src="store.js"></script>
 <script src="rules.js"></script>
 <script>
-  const TOTAL = 5;
-  const STEP_NAME = ['접수 지점', '도착 지역', '보내는 분·받는 분', '물품·무게·크기', '확인'];
-  const TEXT_IDS = ['senderName', 'receiverName', 'receiverPhone', 'itemName',
+  const TOTAL = 6;
+  const STEP_NAME = ['접수 지점', '도착 지역', '물품 종류', '보내는·받는 분', '무게·크기', '확인'];
+  const TEXT_IDS = ['senderName', 'receiverName', 'receiverPhone', 'receiverDong', 'itemName',
                     'weightKg', 'widthCm', 'heightCm', 'depthCm'];
 
   const $ = id => document.getElementById(id);
   const val = id => $(id).value.trim();
 
   // 쓰다 만 내용을 담아 둔다. 뒤로 가도, 위 메뉴로 나갔다 와도 남는다.
-  let D = Object.assign({ branch: '', area: '', staffConfirm: false, step: 1, seen: 1 },
+  let D = Object.assign({ branch: '', area: '', category: '', staffConfirm: false, step: 1, seen: 1 },
                         Store.getDraft());
   let step = Math.min(TOTAL, Math.max(1, Number(D.step) || 1));
 
@@ -213,6 +228,7 @@
   function pickArea(v) {
     D.area = v;
     paintPicked(['areaGrid', 'islandGrid'], v);
+    $('dongWrap').style.display = 'block';
     const region = determineRegion(v);
     const days = ETA_BUSINESS_DAYS[region];
     const eta = addBusinessDaysTrace(new Date(), days);
@@ -244,7 +260,26 @@
     }
   });
 
-  // 3·4단계 입력 ------------------------------------------------
+  // 3단계 · 물품 종류 -------------------------------------------
+  CATEGORIES.forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'cat'; b.dataset.value = c.name;
+    b.innerHTML = '<span class="ci">' + c.icon + '</span><span class="cn">' + c.name + '</span>';
+    b.onclick = () => pickCat(c.name);
+    $('catGrid').appendChild(b);
+  });
+  $('cantSendList').innerHTML = CANT_SEND.map(t => '<li>' + t + '</li>').join('');
+
+  function pickCat(v) {
+    D.category = v;
+    $('catGrid').querySelectorAll('.cat').forEach(b => b.classList.toggle('on', b.dataset.value === v));
+    const c = CATEGORIES.find(x => x.name === v);
+    $('catPicked').innerHTML = '<div class="picked-line">' + c.icon + ' ' + c.name + ' 선택' +
+      (c.note ? '<span class="sub">' + c.note + '</span>' : '') + '</div>';
+    keep(); sync();
+  }
+
+  // 4·5단계 입력 ------------------------------------------------
   $('receiverPhone').addEventListener('input', e => {
     e.target.value = formatPhone(e.target.value);
     keep(); sync();
@@ -262,7 +297,8 @@
     const errs = {};
     if (n === 1 && !branchCodeOf(D.branch)) errs._ = '접수 지점을 골라 주세요.';
     if (n === 2 && !determineRegion(D.area)) errs._ = '도착 지역을 골라 주세요.';
-    if (n === 3) {
+    if (n === 3 && !D.category) errs._ = '물품 종류를 골라 주세요.';
+    if (n === 4) {
       if (!val('senderName')) errs.senderName = '보내는 분 이름을 입력해 주세요.';
       if (!val('receiverName')) errs.receiverName = '받는 분 이름을 입력해 주세요.';
       else if (/[()（）]|님\s*$/.test(val('receiverName')))
@@ -271,7 +307,7 @@
       if (!p) errs.receiverPhone = '받는 분 전화번호를 입력해 주세요.';
       else if (!isValidPhone(p)) errs.receiverPhone = '자릿수가 맞지 않습니다 (지금 ' + phoneDigits(p).length + '자리).';
     }
-    if (n === 4) {
+    if (n === 5) {
       if (!val('itemName')) errs.itemName = '물품명을 입력해 주세요.';
       const ban = checkBanned(val('itemName'));
       if (ban.hardHits.length) {
@@ -305,7 +341,7 @@
 
   // ── 화면 갱신 ───────────────────────────────────────────
   function sync() {
-    if (step === 4) {
+    if (step === 5) {
       const ban = checkBanned(val('itemName'));
       const box = $('banBox'), soft = $('softConfirmBox');
       if (ban.hardHits.length) {
@@ -336,8 +372,8 @@
     for (let i = 1; i <= TOTAL; i++) {
       const d = document.createElement('div');
       const can = i <= (D.seen || 1) && clearedUpTo(i);
-      d.className = 'dot' + (i < step ? ' done' : i === step ? ' on' : '') + (can ? ' can' : '');
-      d.title = i + '. ' + STEP_NAME[i - 1];
+      d.className = 'st' + (i < step ? ' done' : i === step ? ' on' : '') + (can ? ' can' : '');
+      d.innerHTML = '<span class="n">' + i + '</span>' + STEP_NAME[i - 1];
       if (can) d.onclick = () => go(i);
       $('dots').appendChild(d);
     }
@@ -351,7 +387,6 @@
     D.seen = Math.max(D.seen || 1, step);
     document.querySelectorAll('.step').forEach(s =>
       s.classList.toggle('on', Number(s.dataset.step) === step));
-    $('stepCount').textContent = step + ' / ' + TOTAL + ' · ' + STEP_NAME[step - 1];
     $('prevBtn').style.display = step === 1 ? 'none' : '';   // 자리를 비워 두지 않는다
     $('nextBtn').textContent = step === TOTAL ? '접수 완료' : '다음';
     if (step === TOTAL) renderConfirm();
@@ -383,7 +418,8 @@
       ['접수 지점', D.branch + ' (' + branchCodeOf(D.branch) + ')'],
       ['보내는 분', show(val('senderName'))],
       ['받는 분', show(val('receiverName')) + ' · ' + show(val('receiverPhone'))],
-      ['도착 지역', D.area + ' · ' + d.region + ' 권역'],
+      ['도착 지역', D.area + (val('receiverDong') ? ' ' + val('receiverDong') : '') + ' · ' + d.region + ' 권역'],
+      ['물품 종류', show(D.category)],
       ['물품', show(val('itemName'))],
       ['실제 무게', show(toOneDecimal(d.w), 'kg')],
       ['크기', d.x + ' × ' + d.y + ' × ' + d.z + ' cm (합 ' + d.sum + 'cm)'],
@@ -424,7 +460,9 @@
       receiverName: val('receiverName'),
       receiverPhone: val('receiverPhone'),
       receiverArea: D.area,
+      receiverDong: val('receiverDong'),
       regionType: d.region,
+      category: D.category,
       itemName: val('itemName'),
       weightKg: d.w, widthCm: d.x, heightCm: d.y, depthCm: d.z,
       volumeWeightKg: Math.round(d.vol * 100) / 100,

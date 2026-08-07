@@ -3,13 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>두두택배 - 접수 완료</title>
+<title>두두택배 - 운송장 출력</title>
 <!--
-  두두택배 - 접수 완료 (영수증)
+  두두택배 - 운송장 (스티커로 뽑아 상자에 붙이는 것)
   =================================================
-  항목과 내용을 줄맞춰 찍는다. 글자를 이어 붙이면 눈으로 못 따라간다.
-  운송장 번호를 제일 크게 두고, 앞 두 자리(지점 코드)는 색을 달리해
-  어디서 접수했는지 번호만 봐도 알게 했다.
+  CU 키오스크의 마지막 두 화면(운송장 출력 및 부착 / 이용해 주셔서 감사합니다)
+  자리다. 영수증이 아니라 송장이라 실제로 붙일 수 있게 만들었다.
+  - 굵은 테두리와 칸 나눔으로 흑백 인쇄에서도 읽힌다
+  - 보내는 곳은 흰 칸, 받는 곳은 검은 칸으로 뒤집어 배달 기사가 한눈에 본다
+  - 크기 등급과 권역을 맨 위에 크게 두어 분류 작업에서 바로 보인다
+  - 인쇄하면 화면 장식은 빠지고 송장만 나온다 (style.css @media print)
   값이 비어 있어도 '-' 로 찍고 멈추지 않는다.
 -->
 <link rel="stylesheet" href="style.css">
@@ -18,7 +21,7 @@
 <div class="page">
   <div class="topbar">
     <div class="brand">두두택배 접수</div>
-    <div class="sub">접수 완료</div>
+    <div class="sub">운송장 출력 및 부착</div>
   </div>
   <nav class="nav">
     <a href="index.html">접수하기</a>
@@ -35,8 +38,14 @@
   const record = Store.last();
   const panel = document.getElementById('panel');
 
-  function row(k, v) {
-    return '<div class="rrow"><span class="rk">' + k + '</span><span class="rv">' + v + '</span></div>';
+  // 운송장 번호를 굵기가 다른 막대로 그린다. 진짜 바코드는 아니지만
+  // 번호를 그대로 옮긴 것이라 송장다운 모양이 나온다.
+  function bars(no) {
+    const d = String(no || '').replace(/\D/g, '') || '0';
+    return d.split('').map(n => {
+      const w = 2 + (Number(n) % 4);
+      return '<i style="width:' + w + 'px"></i><i style="width:2px;background:#fff"></i>';
+    }).join('');
   }
 
   if (!record) {
@@ -48,52 +57,74 @@
     const days = ETA_BUSINESS_DAYS[record.regionType];
 
     panel.innerHTML =
-      '<div class="receipt">' +
-        '<div class="receipt-top">' +
-          '<div class="receipt-ok">접수가 완료되었습니다</div>' +
-          '<div class="receipt-no-label">운송장 번호</div>' +
-          '<div class="receipt-no"><span class="head">' + no.slice(0, 2) + '</span>' + no.slice(2) + '</div>' +
-          '<div class="receipt-no-hint">앞 두 자리 ' + no.slice(0, 2) + ' = ' + show(record.branchName) + '</div>' +
+      '<div class="waybill">' +
+        '<div class="wb-top">' +
+          '<div class="wb-logo">두두택배</div>' +
+          '<div class="wb-grade">' + show(record.sizeGrade) + '</div>' +
+          '<div class="wb-region">' + show(record.regionType) + '</div>' +
         '</div>' +
 
-        '<div class="rgroup">보내는 분</div>' +
-        '<div class="receipt-rows">' +
-          row('이름', show(record.senderName)) +
-          row('접수 지점', show(record.branchName)) +
+        '<div class="wb-no">' +
+          '<div class="lbl">운송장 번호</div>' +
+          '<div class="num"><span class="h">' + no.slice(0, 2) + '</span> ' + no.slice(2) + '</div>' +
+          '<div class="wb-bars">' + bars(no) + '</div>' +
         '</div>' +
 
-        '<div class="rgroup">받는 분</div>' +
-        '<div class="receipt-rows">' +
-          row('이름', show(record.receiverName)) +
-          row('전화', show(record.receiverPhone)) +
-          row('지역', show(record.receiverArea)) +
-          row('권역', show(record.regionType)) +
+        '<div class="wb-party">' +
+          '<div class="wb-tag">보내는곳</div>' +
+          '<div class="wb-body">' +
+            '<div class="wb-name">' + show(record.senderName) + '</div>' +
+            '<div class="wb-line">' + show(record.branchName) + ' 접수 · 접수번호 앞 ' +
+              no.slice(0, 2) + '</div>' +
+          '</div>' +
         '</div>' +
 
-        '<div class="rgroup">보내는 물건</div>' +
-        '<div class="receipt-rows">' +
-          row('물품', show(record.itemName)) +
-          row('실제 무게', show(toOneDecimal(record.weightKg), 'kg')) +
-          row('크기', show(record.widthCm) + ' × ' + show(record.heightCm) + ' × ' + show(record.depthCm) + ' cm') +
-          row('요금에 쓴 무게', show(record.billedWeightKg, 'kg')) +
-          row('크기 등급', show(record.sizeGrade)) +
+        '<div class="wb-party">' +
+          '<div class="wb-tag to">받는곳</div>' +
+          '<div class="wb-body">' +
+            '<div class="wb-name">' + show(record.receiverName) + '</div>' +
+            '<div class="wb-line"><b>' + show(record.receiverArea) + '</b> ' +
+              show(record.receiverDong) + '</div>' +
+            '<div class="wb-line">' + show(record.receiverPhone) + '</div>' +
+          '</div>' +
         '</div>' +
 
-        '<div class="receipt-total"><span class="tk">받은 금액</span>' +
-          '<span class="tv">' + formatWon(record.price) + '</span></div>' +
-        '<div class="receipt-eta">도착 예정일<br><b>' + show(record.etaDate) + '</b>' +
-          (days ? '<br>접수한 ' + Rules.dayWords(days) + ' (토·일요일은 빼고 셉니다)' : '') +
+        '<div class="wb-goods">' +
+          '<div class="wb-cell"><div class="ck">물품</div><div class="cv">' +
+            show(record.itemName) + '</div></div>' +
+          '<div class="wb-cell"><div class="ck">종류</div><div class="cv">' +
+            show(record.category) + '</div></div>' +
+          '<div class="wb-cell"><div class="ck">요금 무게</div><div class="cv">' +
+            show(record.billedWeightKg, 'kg') + '</div></div>' +
         '</div>' +
-        '<div class="receipt-cut"></div>' +
+        '<div class="wb-goods">' +
+          '<div class="wb-cell"><div class="ck">크기 (가로 세로 높이)</div><div class="cv">' +
+            show(record.widthCm) + ' ' + show(record.heightCm) + ' ' + show(record.depthCm) + ' cm</div></div>' +
+          '<div class="wb-cell"><div class="ck">도착 예정</div><div class="cv">' +
+            show(record.etaDate) + '</div></div>' +
+        '</div>' +
+
+        '<div class="wb-pay"><div class="pk">받은 금액</div>' +
+          '<div class="pv">' + formatWon(record.price) + '</div></div>' +
+        '<div class="wb-foot">' +
+          (days ? '접수한 ' + Rules.dayWords(days) + ' 도착 예정입니다 (토·일요일은 빼고 셉니다)' : '') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="wb-actions">' +
+        '<button type="button" class="wb-print" onclick="window.print()">운송장 출력</button>' +
+        '<a class="wb-again" href="index.html">추가 접수</a>' +
+        '<a class="wb-end" href="list.html">접수 목록</a>' +
       '</div>' +
 
       '<button type="button" class="rules-open" onclick="Rules.open(record)">' +
         '이 요금이 어떻게 나왔는지 규정에서 확인하기</button>' +
 
-      '<div class="center-actions">' +
-        '<a class="btn-main" href="index.html">새 접수</a>' +
-        '<a class="btn-sub" href="list.html">접수 목록 보기</a>' +
-      '</div>';
+      '<div class="cantsend" style="margin-top:16px">' +
+        '<h4>운송장 붙이는 법</h4>' +
+        '<ul><li>출력한 운송장을 상자 <b>윗면 평평한 곳</b>에 붙여 주세요</li>' +
+        '<li>테이프로 <b>번호를 덮지 마세요</b>. 배달할 때 읽지 못합니다</li>' +
+        '<li>먼저 붙어 있던 다른 운송장은 <b>떼거나 지워</b> 주세요</li></ul></div>';
   }
 </script>
 </body>
