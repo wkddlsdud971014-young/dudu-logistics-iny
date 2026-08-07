@@ -57,11 +57,13 @@ const Store = {
       }
       throw new Error(data.error || ('서버가 ' + r.status + ' 로 답했습니다'));
     } catch (e) {
-      // 서버가 없거나 끊겼다. 접수를 막지 않고 이 브라우저에 담아 둔다.
+      // 260807 전에는 여기서 ok:true 를 돌려줬다. 표에 아무것도 안 들어갔는데
+      // 화면은 "접수 완료" 라고 말했다. 손님은 저장이 안 된 줄 모르고 갔다.
+      // 적은 내용은 잃지 않게 이 브라우저에 담아 두되, 완료라고는 하지 않는다.
       this.where = '이 브라우저';
       this._pushLocal(body);
       sessionStorage.setItem(this.LAST, JSON.stringify(body));
-      return { ok: true, row: body, where: '이 브라우저', offline: true,
+      return { ok: false, row: body, where: '이 브라우저', offline: true,
                error: String(e && e.message) };
     }
   },

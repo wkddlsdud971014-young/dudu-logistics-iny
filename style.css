@@ -652,3 +652,9 @@ details.info th { color: var(--muted); font-weight: 700; }
 .near.ok   { background: #F1F8E9; border: 1px solid var(--accent); color: #33691E; }
 .near.warn { background: #FFF8E1; border: 1px solid #FFB300; color: #7A5300; }
 .near b    { font-weight: 800; }
+
+/* 260807 물품 종류 버튼에 보기 붙이기 - "이불은 의류인가?" 를 없앤다 */
+.cat .ceg { display: block; margin-top: 3px; font-size: 11.5px; font-weight: 600;
+            color: var(--muted); line-height: 1.35; letter-spacing: -.2px; }
+.cat.on .ceg { color: #33691E; }
+.why-small { font-size: 12.5px; opacity: .85; }

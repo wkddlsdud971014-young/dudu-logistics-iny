@@ -47,6 +47,18 @@ function toApp(row) {
   return out;
 }
 
+// 그 지점의 마지막 번호 다음을 준다. 표를 직접 보고 정한다.
+async function nextNo(code) {
+  const r = await sb('shipments?select=tracking_no' +
+    '&tracking_no=like.' + code + '*' +
+    '&order=tracking_no.desc&limit=1');
+  if (!r.ok) return null;
+  const rows = await r.json();
+  const last = rows && rows[0] && rows[0].tracking_no;
+  const n = last ? Number(String(last).slice(2)) : 0;
+  return code + String((isFinite(n) ? n : 0) + 1).padStart(8, '0');
+}
+
 async function sb(path, init) {
   return fetch(URL_ + '/rest/v1/' + path, {
     ...init,
@@ -83,8 +95,24 @@ module.exports = async (req, res) => {
 
     // ── 접수 저장 ──
     if (req.method === 'POST') {
-      const row = toDb(typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {});
-      if (!row.tracking_no) return res.status(400).json({ error: '운송장 번호가 없습니다' });
+      const raw = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
+      const row = toDb(raw);
+
+      // 260807 운송장 번호는 서버가 뽑는다.
+      //
+      // 전에는 화면이 뽑았다. 화면은 표에 무엇이 들어 있는지 모른다.
+      // 그래서 새 브라우저를 열면 늘 1100000001 부터 다시 시작했고,
+      // 그 번호는 표에 이미 있었다. 조회하면 남의 접수 건이 나왔다.
+      // 정책서에 적어 둔 "창구 두 곳이 서로를 모른다" 와 같은 자리다.
+      // 표를 보고 뽑을 수 있는 것은 표 옆에 있는 이 서버뿐이다.
+      const code = String(raw.branchCode || '').trim();
+      if (!row.tracking_no) {
+        if (!/^\d{2}$/.test(code)) {
+          return res.status(400).json({ error: '접수 지점 코드가 없습니다' });
+        }
+        row.tracking_no = await nextNo(code);
+      }
+      if (!row.tracking_no) return res.status(400).json({ error: '운송장 번호를 만들지 못했습니다' });
       // 안 적어 보내면 진짜 접수로 본다. 빈 값(NULL)으로 두지 않는다 -
       // 빈 값은 true 도 false 도 아니라서 나중에 걸러지지 않는다.
       if (row.is_test === undefined || row.is_test === null) row.is_test = false;
@@ -100,6 +128,24 @@ module.exports = async (req, res) => {
       // 화면으로는 못 막는 것이라, 여기서 걸리면 다른 창구가 같은 번호를
       // 먼저 가져간 것이다. 화면에 다시 뽑으라고 알려 준다.
       if (r.status === 409 || (body && body.code === '23505')) {
+        // 화면이 번호를 직접 정해 보낸 경우에만 돌려보낸다.
+        // 서버가 뽑은 번호라면 그 사이에 다른 창구가 가져간 것이므로
+        // 여기서 다음 번호로 다시 넣는다. 손님은 다시 누를 필요가 없다.
+        if (code) {
+          for (let i = 0; i < 5; i++) {
+            row.tracking_no = await nextNo(code);
+            const again = await sb('shipments', {
+              method: 'POST',
+              headers: { Prefer: 'return=representation' },
+              body: JSON.stringify(row),
+            });
+            const b2 = await again.json();
+            if (again.ok) return res.status(200).json({ row: toApp(Array.isArray(b2) ? b2[0] : b2) });
+            if (!(again.status === 409 || (b2 && b2.code === '23505'))) {
+              return res.status(again.status).json({ error: b2.message || '저장 실패', detail: b2 });
+            }
+          }
+        }
         return res.status(409).json({
           error: '이미 있는 운송장 번호입니다',
           reason: 'duplicate_tracking_no',
