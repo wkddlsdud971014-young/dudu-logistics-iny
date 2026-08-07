@@ -471,3 +471,66 @@ details.info th { color: var(--muted); font-weight: 700; }
   .panel { border: none; padding: 0; }
   .waybill { max-width: 100%; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   CU 초록 되살리기
+   스크린샷을 보면 하단 이동 버튼(메인화면·이전화면)이 초록이고,
+   보내는 사람은 보라 뱃지 / 받는 사람은 초록 뱃지로 갈라 놓았다.
+   ══════════════════════════════════════════════════════════════ */
+:root { --cu-green: #4CAF50; --cu-green-dark: #2E7D32; --cu-green-soft: #edf7ee; }
+#prevBtn { background: var(--cu-green); color: #fff; border: none; }
+#prevBtn:hover { background: var(--cu-green-dark); }
+.steptabs .st.done { background: var(--cu-green-soft); color: var(--cu-green-dark); }
+.btn-sub { border-color: var(--cu-green); color: var(--cu-green-dark); }
+.wb-again { background: var(--cu-green); color: #fff; border: none; }
+
+/* 사람 뱃지 - 보내는 분 보라 / 받는 분 초록 */
+.who { display: flex; gap: 11px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid #f0eef3; }
+.who:last-child { border-bottom: none; }
+.who-tag { width: 62px; flex-shrink: 0; padding: 9px 6px; border-radius: 9px; text-align: center;
+  font-size: 12px; font-weight: 800; color: #fff; line-height: 1.35; }
+.who-tag.from { background: var(--brand); }
+.who-tag.to { background: var(--cu-green); }
+.who-body { flex: 1; }
+.who-name { font-size: 15px; font-weight: 800; }
+.who-line { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.6; }
+
+/* ── 저울 ─────────────────────────────────────────────────── */
+.scale { border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 16px; background: #fff; }
+.scale-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.scale-title { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.scale-read { font-size: 30px; font-weight: 800; color: var(--brand-dark); font-variant-numeric: tabular-nums; }
+.scale-read .u { font-size: 15px; color: var(--muted); margin-left: 3px; }
+.scale-bar { height: 22px; border-radius: 11px; background: #eee9f0; overflow: hidden; position: relative; }
+.scale-fill { height: 100%; width: 0; border-radius: 11px; transition: width .28s ease, background .28s; background: var(--cu-green); }
+.scale-fill.g2 { background: #7CB342; }
+.scale-fill.g3 { background: #F9A825; }
+.scale-fill.g4 { background: #EF6C00; }
+.scale-fill.over { background: var(--bad-text); }
+.scale-marks { display: flex; justify-content: space-between; margin-top: 7px; font-size: 10.5px; color: var(--muted); }
+.scale-grade { margin-top: 12px; padding: 11px 13px; border-radius: 11px; background: var(--brand-soft);
+  font-size: 13.5px; font-weight: 700; color: var(--brand-dark); text-align: center; }
+.scale-grade.over { background: var(--bad-bg); color: var(--bad-text); }
+
+/* ── 결제 방법 ────────────────────────────────────────────── */
+.pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.pay { min-height: 108px; border: 2px solid var(--border); border-radius: 15px; background: #fff;
+  font-family: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 7px; padding: 14px 10px; transition: all .12s; }
+.pay .pi { font-size: 27px; }
+.pay .pn { font-size: 16px; font-weight: 800; }
+.pay .pw { font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.45; }
+.pay:hover { border-color: var(--brand); }
+.pay.on { border-color: var(--brand); background: var(--brand); }
+.pay.on .pn, .pay.on .pw { color: #fff; }
+.pay.on .pw { opacity: .85; }
+
+/* ── 포장 유의 · 면책 동의 ───────────────────────────────── */
+.packbox { margin-top: 15px; border: 1.5px solid var(--warn-border); border-radius: 13px;
+  background: var(--warn-bg); padding: 14px 15px; }
+.packbox h4 { margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--warn-text); }
+.packbox ul { margin: 0 0 12px; padding-left: 17px; font-size: 12.5px; line-height: 1.85; color: #6b5518; }
+.agree { display: flex; align-items: flex-start; gap: 9px; padding-top: 11px; border-top: 1px solid var(--warn-border);
+  font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer; line-height: 1.6; }
+.agree input { width: 19px; height: 19px; flex-shrink: 0; margin-top: 1px; accent-color: var(--brand); }
+@media (max-width: 560px) { .pay-grid { grid-template-columns: 1fr; } .scale-read { font-size: 25px; } }

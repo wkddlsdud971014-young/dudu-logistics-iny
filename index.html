@@ -77,50 +77,18 @@
     </section>
 
     <section class="step" data-step="3">
-      <h2 class="step-q">무엇을 보내시나요?</h2>
-      <p class="step-sub">보내실 물건에 가장 가까운 것을 골라 주세요.</p>
-      <div class="cat-grid" id="catGrid"></div>
-      <div id="catPicked"></div>
-      <div class="cantsend">
-        <h4>보낼 수 없는 물건</h4>
-        <ul id="cantSendList"></ul>
+      <h2 class="step-q">무게와 크기를 재 주세요</h2>
+      <p class="step-sub">저울에 올린 무게를 적으시면 어느 크기에 드는지 바로 보여 드립니다.</p>
+      <div class="scale">
+        <div class="scale-head">
+          <span class="scale-title">측정 무게</span>
+          <span class="scale-read"><span id="scaleVal">0.0</span><span class="u">kg</span></span>
+        </div>
+        <div class="scale-bar"><div class="scale-fill" id="scaleFill"></div></div>
+        <div class="scale-marks"><span>0</span><span>2</span><span>5</span><span>15</span><span>25kg</span></div>
+        <div class="scale-grade" id="scaleGrade">무게를 적어 주세요</div>
       </div>
-    </section>
-
-    <section class="step" data-step="4">
-      <h2 class="step-q">누가 보내고, 누가 받나요?</h2>
-      <div class="f">
-        <label for="senderName">보내는 분</label>
-        <input type="text" id="senderName" placeholder="김민준" autocomplete="off">
-        <div class="err" id="e_senderName"></div>
-      </div>
-      <div class="f">
-        <label for="receiverName">받는 분</label>
-        <input type="text" id="receiverName" placeholder="이서연" autocomplete="off">
-        <div class="err" id="e_receiverName"></div>
-      </div>
-      <div class="f">
-        <label for="receiverPhone">받는 분 전화</label>
-        <input type="tel" id="receiverPhone" placeholder="01012345678" inputmode="numeric" autocomplete="off">
-        <p class="tip">숫자만 눌러 주세요. 가운데 <b>-</b> 는 저절로 들어갑니다.</p>
-        <div class="err" id="e_receiverPhone"></div>
-      </div>
-    </section>
-
-    <section class="step" data-step="5">
-      <h2 class="step-q">무엇을 보내시나요?</h2>
-      <p class="step-sub">무게와 크기로 요금이 정해집니다.</p>
-      <div class="f">
-        <label for="itemName">물품명</label>
-        <input type="text" id="itemName" placeholder="이불" autocomplete="off">
-        <div class="err" id="e_itemName"></div>
-      </div>
-      <div id="banBox"></div>
-      <div class="soft-confirm" id="softConfirmBox" style="display:none">
-        <div id="softConfirmText"></div>
-        <label><input type="checkbox" id="staffConfirm"> 위 항목을 직원이 확인했습니다</label>
-      </div>
-      <div class="f">
+      <div class="f" style="margin-top:16px">
         <label for="weightKg">실제 무게 (kg)</label>
         <input type="number" id="weightKg" placeholder="3.0" step="0.1" inputmode="decimal">
         <p class="tip">소수 한 자리까지 적습니다. <b>3</b> 이라고 넣으면 <b>3.0</b> 으로 맞춰 드립니다.</p>
@@ -137,7 +105,73 @@
       </div>
     </section>
 
+    <section class="step" data-step="4">
+      <h2 class="step-q">무엇을 보내시나요?</h2>
+      <p class="step-sub">보내실 물건에 가장 가까운 것을 골라 주세요.</p>
+      <div class="cat-grid" id="catGrid"></div>
+      <div id="catPicked"></div>
+      <div class="f" style="margin-top:16px">
+        <label for="itemName">물품명</label>
+        <input type="text" id="itemName" placeholder="이불" autocomplete="off">
+        <div class="err" id="e_itemName"></div>
+      </div>
+      <div id="banBox"></div>
+      <div class="soft-confirm" id="softConfirmBox" style="display:none">
+        <div id="softConfirmText"></div>
+        <label><input type="checkbox" id="staffConfirm"> 위 항목을 직원이 확인했습니다</label>
+      </div>
+      <div class="packbox" id="packBox" style="display:none">
+        <h4 id="packTitle">포장 확인</h4>
+        <ul id="packList"></ul>
+        <label class="agree">
+          <input type="checkbox" id="agreeDamage">
+          위와 같이 포장했고, <b>포장이 모자라 생긴 파손은 배상 대상이 아니라는 점</b>을 확인했습니다.
+        </label>
+      </div>
+      <div class="cantsend">
+        <h4>보낼 수 없는 물건</h4>
+        <ul id="cantSendList"></ul>
+      </div>
+    </section>
+
+    <section class="step" data-step="5">
+      <h2 class="step-q">누가 보내고, 누가 받나요?</h2>
+      <div class="f">
+        <label for="senderName">보내는 분</label>
+        <input type="text" id="senderName" placeholder="김민준" autocomplete="off">
+        <div class="err" id="e_senderName"></div>
+      </div>
+      <div class="f">
+        <label for="senderPhone">보내는 분 전화</label>
+        <input type="tel" id="senderPhone" placeholder="01012345678" inputmode="numeric" autocomplete="off">
+        <p class="tip">숫자만 눌러 주세요. 배송에 문제가 생기면 이 번호로 연락드립니다.</p>
+        <div class="err" id="e_senderPhone"></div>
+      </div>
+      <div class="f">
+        <label for="senderDong">보내는 곳 주소 <span style="color:var(--muted);font-weight:600">(선택)</span></label>
+        <input type="text" id="senderDong" placeholder="예: 서울 용산구 청파동" autocomplete="off">
+      </div>
+      <div class="f">
+        <label for="receiverName">받는 분</label>
+        <input type="text" id="receiverName" placeholder="이서연" autocomplete="off">
+        <div class="err" id="e_receiverName"></div>
+      </div>
+      <div class="f">
+        <label for="receiverPhone">받는 분 전화</label>
+        <input type="tel" id="receiverPhone" placeholder="01012345678" inputmode="numeric" autocomplete="off">
+        <p class="tip">숫자만 눌러 주세요. 가운데 <b>-</b> 는 저절로 들어갑니다.</p>
+        <div class="err" id="e_receiverPhone"></div>
+      </div>
+    </section>
+
     <section class="step" data-step="6">
+      <h2 class="step-q">요금은 어떻게 내시나요?</h2>
+      <p class="step-sub">금액은 같습니다. 누가 내는지만 달라집니다.</p>
+      <div class="pay-grid" id="payGrid"></div>
+      <div id="payPicked"></div>
+    </section>
+
+    <section class="step" data-step="7">
       <h2 class="step-q">이대로 접수할까요?</h2>
       <div class="big-price" id="bigPrice"></div>
       <div class="sum" id="summary"></div>
@@ -161,16 +195,17 @@
 <script src="store.js"></script>
 <script src="rules.js"></script>
 <script>
-  const TOTAL = 6;
-  const STEP_NAME = ['접수 지점', '도착 지역', '물품 종류', '보내는·받는 분', '무게·크기', '확인'];
-  const TEXT_IDS = ['senderName', 'receiverName', 'receiverPhone', 'receiverDong', 'itemName',
-                    'weightKg', 'widthCm', 'heightCm', 'depthCm'];
+  const TOTAL = 7;
+  const STEP_NAME = ['접수 지점', '도착 지역', '무게·크기', '물품 종류', '보내는·받는 분', '결제 방법', '확인'];
+  const TEXT_IDS = ['senderName', 'senderPhone', 'senderDong', 'receiverName', 'receiverPhone',
+                    'receiverDong', 'itemName', 'weightKg', 'widthCm', 'heightCm', 'depthCm'];
 
   const $ = id => document.getElementById(id);
   const val = id => $(id).value.trim();
 
   // 쓰다 만 내용을 담아 둔다. 뒤로 가도, 위 메뉴로 나갔다 와도 남는다.
-  let D = Object.assign({ branch: '', area: '', category: '', staffConfirm: false, step: 1, seen: 1 },
+  let D = Object.assign({ branch: '', area: '', category: '', payType: '선불',
+                          staffConfirm: false, agreeDamage: false, step: 1, seen: 1 },
                         Store.getDraft());
   let step = Math.min(TOTAL, Math.max(1, Number(D.step) || 1));
 
@@ -179,11 +214,13 @@
     D.seen = Math.max(D.seen || 1, step);
     TEXT_IDS.forEach(id => { D[id] = $(id).value; });
     D.staffConfirm = $('staffConfirm').checked;
+    D.agreeDamage = $('agreeDamage').checked;
     Store.setDraft(D);
   }
   function restore() {
     TEXT_IDS.forEach(id => { if (D[id] != null) $(id).value = D[id]; });
     $('staffConfirm').checked = !!D.staffConfirm;
+    $('agreeDamage').checked = !!D.agreeDamage;
   }
 
   // ── 고르는 버튼 ─────────────────────────────────────────
@@ -279,11 +316,58 @@
     keep(); sync();
   }
 
-  // 4·5단계 입력 ------------------------------------------------
-  $('receiverPhone').addEventListener('input', e => {
+  // 3단계 · 저울 -------------------------------------------------
+  function paintScale() {
+    const raw = val('weightKg');
+    const pct = scalePercent(raw), g = gradeByWeight(raw);
+    const n = Number(raw);
+    $('scaleVal').textContent = raw === '' ? '0.0' : toOneDecimal(raw);
+    const fill = $('scaleFill');
+    fill.style.width = pct + '%';
+    const cls = !g ? (isFinite(n) && n > 0 ? 'over' : '')
+      : ({ '극소형': '', '소형': 'g2', '중형': 'g3', '대형': 'g4' })[g];
+    fill.className = 'scale-fill ' + cls;
+    const box = $('scaleGrade');
+    if (raw === '') { box.className = 'scale-grade'; box.textContent = '무게를 적어 주세요'; }
+    else if (!g) { box.className = 'scale-grade over'; box.textContent = '25kg이 넘어 보낼 수 없습니다'; }
+    else { box.className = 'scale-grade'; box.textContent = '무게로는 ' + g + ' 입니다 (크기도 함께 봅니다)'; }
+  }
+
+  // 4단계 · 포장 안내 -------------------------------------------
+  function paintPack() {
+    const box = $('packBox');
+    if (!D.category) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    $('packTitle').textContent = D.category + ' 포장 확인';
+    $('packList').innerHTML = (PACKING[D.category] || []).concat(PACK_COMMON)
+      .map(t => '<li>' + t + '</li>').join('');
+  }
+
+  // 6단계 · 결제 방법 -------------------------------------------
+  PAY_TYPES.forEach(p => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'pay'; b.dataset.value = p.name;
+    b.innerHTML = '<span class="pi">' + p.icon + '</span><span class="pn">' + p.name +
+      '</span><span class="pw">' + p.who + '</span>';
+    b.onclick = () => pickPay(p.name);
+    $('payGrid').appendChild(b);
+  });
+  function pickPay(v) {
+    D.payType = v;
+    $('payGrid').querySelectorAll('.pay').forEach(b => b.classList.toggle('on', b.dataset.value === v));
+    $('payPicked').innerHTML = '<div class="picked-line">' + v + ' 선택<span class="sub">' +
+      (v === '착불' ? '운송장에 착불로 찍힙니다. 받는 분이 물건 받을 때 냅니다.'
+                    : '지금 받습니다. 운송장에 선불로 찍힙니다.') +
+      ' 금액은 같습니다.</span></div>';
+    keep(); sync();
+  }
+
+  // 5·확인 단계 입력 ---------------------------------------------
+  ['receiverPhone', 'senderPhone'].forEach(id => $(id).addEventListener('input', e => {
     e.target.value = formatPhone(e.target.value);
     keep(); sync();
-  });
+  }));
+  $('agreeDamage').addEventListener('change', () => { keep(); sync(); });
   // 무게는 손을 떼면 소수 한 자리로 맞춘다. 3 이라고 넣어도 3.0 으로 보인다.
   $('weightKg').addEventListener('blur', e => {
     e.target.value = toOneDecimal(e.target.value);
@@ -297,25 +381,7 @@
     const errs = {};
     if (n === 1 && !branchCodeOf(D.branch)) errs._ = '접수 지점을 골라 주세요.';
     if (n === 2 && !determineRegion(D.area)) errs._ = '도착 지역을 골라 주세요.';
-    if (n === 3 && !D.category) errs._ = '물품 종류를 골라 주세요.';
-    if (n === 4) {
-      if (!val('senderName')) errs.senderName = '보내는 분 이름을 입력해 주세요.';
-      if (!val('receiverName')) errs.receiverName = '받는 분 이름을 입력해 주세요.';
-      else if (/[()（）]|님\s*$/.test(val('receiverName')))
-        errs.receiverName = '이름만 적어 주세요. 요청사항·호칭은 넣지 않습니다.';
-      const p = val('receiverPhone');
-      if (!p) errs.receiverPhone = '받는 분 전화번호를 입력해 주세요.';
-      else if (!isValidPhone(p)) errs.receiverPhone = '자릿수가 맞지 않습니다 (지금 ' + phoneDigits(p).length + '자리).';
-    }
-    if (n === 5) {
-      if (!val('itemName')) errs.itemName = '물품명을 입력해 주세요.';
-      const ban = checkBanned(val('itemName'));
-      if (ban.hardHits.length) {
-        errs.itemName = '접수 불가 품목입니다 — ' + ban.hardHits[0].category +
-          ' "' + ban.hardHits[0].keyword + '" 은(는) 보낼 수 없습니다.';
-      } else if (ban.softHits.length && !$('staffConfirm').checked) {
-        errs.itemName = '직원 확인 체크가 필요합니다.';
-      }
+    if (n === 3) {
       const w = checkNumber('weightKg', val('weightKg'));
       if (w.err) errs.weightKg = w.err;
       const dims = ['widthCm', 'heightCm', 'depthCm'].map(k => checkNumber(k, val(k)));
@@ -325,10 +391,37 @@
         const sum = dims.reduce((t, d) => t + d.n, 0);
         const bw = Math.max(w.n, dims.reduce((t, d) => t * d.n, 1) / 6000);
         if (!determineGrade(sum, bw)) {
-          errs.dims = '대형 상한을 넘었습니다 — 세 변의 합 ' + sum + 'cm, 요금 무게 ' +
-            bw.toFixed(2) + 'kg 입니다.<br>대형(세 변의 합 160cm · 25kg)까지가 접수할 수 있는 크기입니다. ' +
+          errs.dims = '보낼 수 있는 크기를 넘었습니다. 세 변의 합 ' + sum + 'cm, 요금 무게 ' +
+            bw.toFixed(2) + 'kg 입니다.<br>대형(세 변의 합 160cm · 25kg)까지 받습니다. ' +
             '상자를 나눠 두 건으로 보내 주세요.';
         }
+      }
+    }
+    if (n === 4) {
+      if (!D.category) errs._ = '물품 종류를 골라 주세요.';
+      if (D.category && !$('agreeDamage').checked) errs._ = '포장 확인에 체크해 주세요.';
+    }
+    if (n === 5) {
+      if (!val('senderName')) errs.senderName = '보내는 분 이름을 입력해 주세요.';
+      if (!val('receiverName')) errs.receiverName = '받는 분 이름을 입력해 주세요.';
+      else if (/[()（）]|님\s*$/.test(val('receiverName')))
+        errs.receiverName = '이름만 적어 주세요. 요청사항·호칭은 넣지 않습니다.';
+      const p = val('receiverPhone');
+      if (!p) errs.receiverPhone = '받는 분 전화번호를 입력해 주세요.';
+      else if (!isValidPhone(p)) errs.receiverPhone = '자릿수가 맞지 않습니다 (지금 ' + phoneDigits(p).length + '자리).';
+      const sp = val('senderPhone');
+      if (!sp) errs.senderPhone = '보내는 분 전화번호를 입력해 주세요.';
+      else if (!isValidPhone(sp)) errs.senderPhone = '자릿수가 맞지 않습니다 (지금 ' + phoneDigits(sp).length + '자리).';
+    }
+    if (n === 6 && !D.payType) errs._ = '결제 방법을 골라 주세요.';
+    if (n === 4) {
+      if (!val('itemName')) errs.itemName = '물품명을 입력해 주세요.';
+      const ban = checkBanned(val('itemName'));
+      if (ban.hardHits.length) {
+        errs.itemName = '접수 불가 품목입니다 — ' + ban.hardHits[0].category +
+          ' "' + ban.hardHits[0].keyword + '" 은(는) 보낼 수 없습니다.';
+      } else if (ban.softHits.length && !$('staffConfirm').checked) {
+        errs.itemName = '직원 확인 체크가 필요합니다.';
       }
     }
     return errs;
@@ -341,7 +434,7 @@
 
   // ── 화면 갱신 ───────────────────────────────────────────
   function sync() {
-    if (step === 5) {
+    if (step === 4) {
       const ban = checkBanned(val('itemName'));
       const box = $('banBox'), soft = $('softConfirmBox');
       if (ban.hardHits.length) {
@@ -360,9 +453,10 @@
       }
     }
     const errs = checkStep(step);
-    ['senderName', 'receiverName', 'receiverPhone', 'itemName', 'weightKg', 'dims']
+    ['senderName', 'senderPhone', 'receiverName', 'receiverPhone', 'itemName', 'weightKg', 'dims']
       .forEach(k => { const el = $('e_' + k); if (el) el.textContent = errs[k] || ''; });
     $('nextBtn').disabled = Object.keys(errs).length > 0;
+    paintScale(); paintPack();
     paintDots();
   }
 
@@ -414,11 +508,20 @@
       '요일</b> 도착 예정 · 접수한 ' + Rules.dayWords(ETA_BUSINESS_DAYS[d.region]) +
       ' (토·일요일 제외)</div>';
 
+    $('summary').innerHTML =
+      '<div style="padding:4px 14px">' +
+      '<div class="who"><div class="who-tag from">보내는 분</div><div class="who-body">' +
+        '<div class="who-name">' + show(val('senderName')) + '</div>' +
+        '<div class="who-line">' + show(val('senderPhone')) + '</div>' +
+        '<div class="who-line">' + show(val('senderDong')) + ' · ' + D.branch + ' 접수</div></div></div>' +
+      '<div class="who"><div class="who-tag to">받는 분</div><div class="who-body">' +
+        '<div class="who-name">' + show(val('receiverName')) + '</div>' +
+        '<div class="who-line">' + show(val('receiverPhone')) + '</div>' +
+        '<div class="who-line">' + D.area + ' ' + show(val('receiverDong')) +
+        ' · ' + d.region + ' 권역</div></div></div></div>';
+
     const rows = [
-      ['접수 지점', D.branch + ' (' + branchCodeOf(D.branch) + ')'],
-      ['보내는 분', show(val('senderName'))],
-      ['받는 분', show(val('receiverName')) + ' · ' + show(val('receiverPhone'))],
-      ['도착 지역', D.area + (val('receiverDong') ? ' ' + val('receiverDong') : '') + ' · ' + d.region + ' 권역'],
+      ['결제 방법', D.payType + (D.payType === '착불' ? ' (받는 분이 냅니다)' : '')],
       ['물품 종류', show(D.category)],
       ['물품', show(val('itemName'))],
       ['실제 무게', show(toOneDecimal(d.w), 'kg')],
@@ -426,7 +529,7 @@
       ['요금 무게', show(d.billed.toFixed(2), 'kg')],
       ['크기 등급', show(d.grade)],
     ];
-    $('summary').innerHTML = rows.map(r =>
+    $('summary').innerHTML += rows.map(r =>
       '<div class="sum-row"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>').join('');
 
     const gt = gradeTrace(d.sum, d.billed);
@@ -457,6 +560,9 @@
       trackingNo: Store.nextTrackingNo(branchCodeOf(D.branch)),
       branchName: D.branch,
       senderName: val('senderName'),
+      senderPhone: val('senderPhone'),
+      senderDong: val('senderDong'),
+      payType: D.payType,
       receiverName: val('receiverName'),
       receiverPhone: val('receiverPhone'),
       receiverArea: D.area,

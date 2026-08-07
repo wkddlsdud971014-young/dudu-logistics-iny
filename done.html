@@ -74,8 +74,9 @@
           '<div class="wb-tag">보내는곳</div>' +
           '<div class="wb-body">' +
             '<div class="wb-name">' + show(record.senderName) + '</div>' +
-            '<div class="wb-line">' + show(record.branchName) + ' 접수 · 접수번호 앞 ' +
-              no.slice(0, 2) + '</div>' +
+            '<div class="wb-line">' + show(record.senderPhone) + '</div>' +
+            '<div class="wb-line">' + show(record.senderDong) + ' · ' +
+              show(record.branchName) + ' 접수</div>' +
           '</div>' +
         '</div>' +
 
@@ -104,9 +105,10 @@
             show(record.etaDate) + '</div></div>' +
         '</div>' +
 
-        '<div class="wb-pay"><div class="pk">받은 금액</div>' +
+        '<div class="wb-pay"><div class="pk">' + show(record.payType, ' 요금') + '</div>' +
           '<div class="pv">' + formatWon(record.price) + '</div></div>' +
         '<div class="wb-foot">' +
+          (record.payType === '착불' ? '<b>받는 분이 물건 받을 때 내는 요금입니다</b><br>' : '') +
           (days ? '접수한 ' + Rules.dayWords(days) + ' 도착 예정입니다 (토·일요일은 빼고 셉니다)' : '') +
         '</div>' +
       '</div>' +
