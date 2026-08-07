@@ -87,6 +87,8 @@
             '<div class="wb-line"><b>' + show(record.receiverArea) + '</b> ' +
               show(record.receiverDong) + '</div>' +
             '<div class="wb-line">' + show(record.receiverPhone) + '</div>' +
+            (record.deliveryNote && record.deliveryNote !== '없음'
+              ? '<div class="wb-line"><b>요청 ' + record.deliveryNote + '</b></div>' : '') +
           '</div>' +
         '</div>' +
 

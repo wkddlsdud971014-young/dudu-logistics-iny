@@ -534,3 +534,48 @@ details.info th { color: var(--muted); font-weight: 700; }
   font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer; line-height: 1.6; }
 .agree input { width: 19px; height: 19px; flex-shrink: 0; margin-top: 1px; accent-color: var(--brand); }
 @media (max-width: 560px) { .pay-grid { grid-template-columns: 1fr; } .scale-read { font-size: 25px; } }
+
+/* ══════════════════════════════════════════════════════════════
+   260807 눌러 보고 고친 것들
+   ══════════════════════════════════════════════════════════════ */
+
+/* 1. 물품 종류를 4개씩 두 줄로 (6+2 로 갈리면 허전하다) */
+.cat-grid { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 640px) { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* 2. 운송장 물품 칸 두 줄 사이에 선 */
+.wb-goods + .wb-goods { border-top: 1.5px solid #111; }
+
+/* 3. 접수 목록 - 글자가 세로로 쪼개지지 않게. 좁으면 옆으로 민다 */
+.list-section table { min-width: 1180px; }
+.list-section th, .list-section td { white-space: nowrap; }
+.list-section td:nth-child(8) { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+
+/* 5. 저울을 진짜 저울처럼 */
+.scale { padding: 0; border: none; background: none; }
+.scale-plate {
+  height: 26px; margin: 0 26px; border-radius: 9px 9px 0 0;
+  background: linear-gradient(180deg, #d8d3de 0%, #b9b2c2 100%);
+  border: 1.5px solid #a49bb0; border-bottom: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #6b6377; font-weight: 700; letter-spacing: 4px;
+}
+.scale-body {
+  border: 1.5px solid var(--border); border-radius: 16px; background: #f7f5f9;
+  padding: 16px 16px 14px; box-shadow: inset 0 2px 0 #fff;
+}
+.scale-lcd {
+  background: #14181a; border-radius: 10px; padding: 14px 16px; text-align: right;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace; position: relative;
+  border: 2px solid #2c3236;
+}
+.scale-lcd .digits { font-size: 40px; font-weight: 700; color: #7dfa8d; letter-spacing: 2px; line-height: 1; text-shadow: 0 0 12px rgba(125,250,141,.45); }
+.scale-lcd .u { font-size: 17px; color: #4e9c58; margin-left: 7px; }
+.scale-lcd .led { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); text-align: left; }
+.scale-lcd .led i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #2c3236; margin-bottom: 5px; }
+.scale-lcd .led i.on { background: #7dfa8d; box-shadow: 0 0 7px #7dfa8d; }
+.scale-lcd .led span { font-size: 8.5px; color: #4e9c58; letter-spacing: .5px; }
+.scale-bar { margin-top: 13px; }
+.scale-foot { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 11.5px; color: var(--muted); }
+.scale-foot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cu-green); flex-shrink: 0; }
+@media (max-width: 560px) { .scale-lcd .digits { font-size: 32px; } }
