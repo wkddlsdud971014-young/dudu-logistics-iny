@@ -80,12 +80,12 @@
       <h2 class="step-q">어디로 보내시나요?</h2>
       <p class="step-sub"><b>먼저 시·도를 고르시고</b>, 그 아래에 자세한 주소를 적어 주세요.</p>
 
-      <div class="opt-label">시·도 <span class="auto-tag">요금이 여기서 정해집니다</span></div>
+      <div class="opt-label"><span class="nextup-no">1</span> 시·도 <span class="auto-tag">요금이 여기서 정해집니다</span></div>
       <div class="opt-grid" id="areaGrid"></div>
       <div class="opt-label" id="islandLabel">섬 지역 (도서산간)</div>
       <div class="opt-grid" id="islandGrid"></div>
       <div id="areaPicked"></div>
-      <div class="findbox">
+      <div class="findbox" id="areaFind">
         <div class="fb-t">어느 시·도인지 모르시겠나요?</div>
         <div class="search-box mini">
           <span class="ico">🔍</span>
@@ -95,10 +95,12 @@
         <div class="search-none" id="areaNone" style="display:none"></div>
       </div>
 
-      <div class="f" style="margin-top:16px">
-        <label for="receiverDong">받는 곳 자세한 주소</label>
+      <div class="f nextup" id="dongBox">
+        <label for="receiverDong">
+          <span class="nextup-no">2</span> 받는 곳 자세한 주소
+        </label>
         <input type="text" id="receiverDong" autocomplete="off"
-               placeholder="시·도를 먼저 골라 주세요">
+               placeholder="위에서 시·도를 먼저 골라 주세요">
         <p class="tip">시·군·구, 동, 번지, 건물까지 적어 주세요. <b>운송장에 이대로 찍힙니다.</b></p>
         <div class="err" id="e_receiverDong"></div>
       </div>
@@ -391,6 +393,14 @@
       '경남': '예: 거제시 아주동 123-45 두두아파트 101동 202호',
       '제주': '예: 제주시 노형동 123-4 두두빌딩 3층',
     })[v] || ('예: ' + v + ' ○○시 ○○동 12-34 ○○아파트 101동 202호');
+    // 고르고 나면 '모르시겠나요' 검색 상자는 할 일이 끝났다. 접는다.
+    // 안 접으면 다음에 적을 주소 칸 앞을 가려서 눈이 거기 먼저 걸린다.
+    $('areaFind').style.display = 'none';
+    $('dongBox').classList.add('on');
+    if (!val('receiverDong')) {
+      $('receiverDong').focus({ preventScroll: true });
+      $('dongBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     keep(); sync();
   }
 
