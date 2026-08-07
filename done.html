@@ -45,7 +45,8 @@
         <div class="receipt-title">접수가 완료됐습니다</div>
         <div class="receipt-tno">${record.trackingNo}</div>
         <div class="receipt-line">접수 지점 ${record.branchName} / 보내는 분 ${record.senderName}</div>
-        <div class="receipt-line">받는 분 ${record.receiverName} / 도착 지역 ${record.receiverArea}(${record.regionType})</div>
+        <div class="receipt-line">받는 분 ${record.receiverName} ${record.receiverPhone || ''}</div>
+        <div class="receipt-line">도착 지역 ${record.receiverArea} (${record.regionType} 권역)</div>
         <div class="receipt-line">물품 ${record.itemName} / 요금 무게 ${record.billedWeightKg}kg / 등급 ${record.sizeGrade}</div>
         <div class="receipt-price">${formatWon(record.price)}</div>
         <div class="receipt-line">도착 예정일 ${record.etaDate}</div>

@@ -128,3 +128,76 @@
 .count-line { font-size: 12.5px; color: var(--muted); margin: 0 0 10px 2px; }
 .receipt-card .receipt-tno { font-size: 30px; letter-spacing: 1px; }
 .receipt-card .receipt-price { font-size: 34px; }
+
+/* ══════════════════════════════════════════════════════════════
+   CU 키오스크식 단계 화면 (회고 13줄 - "지역은 버튼으로 고르게")
+   손가락으로 누르는 화면이라 드롭다운을 쓰지 않는다. 버튼은 최소 56px.
+   ══════════════════════════════════════════════════════════════ */
+.wizard { max-width: 620px; margin: 0 auto; }
+
+/* 진행 막대 */
+.steps { display: flex; gap: 6px; margin-bottom: 6px; }
+.steps .dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); transition: background .2s; }
+.steps .dot.done { background: var(--brand); }
+.steps .dot.on { background: var(--accent); }
+.step-count { font-size: 12.5px; color: var(--muted); margin: 0 0 18px; font-weight: 700; }
+
+.step { display: none; }
+.step.on { display: block; }
+.step-q { font-size: 21px; font-weight: 800; margin: 0 0 6px; line-height: 1.4; }
+.step-sub { font-size: 13px; color: var(--muted); margin: 0 0 18px; line-height: 1.6; }
+
+/* 고르는 버튼 격자 */
+.opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)); gap: 8px; }
+.opt {
+  min-height: 58px; padding: 10px 8px; border: 1.5px solid var(--border); border-radius: 12px;
+  background: #fff; font-size: 15px; font-weight: 700; color: var(--text);
+  cursor: pointer; font-family: inherit; line-height: 1.35; transition: all .12s;
+}
+.opt:hover { border-color: var(--brand); background: #f3f8fd; }
+.opt.on { border-color: var(--brand); background: var(--brand); color: #fff; }
+.opt .opt-sub { display: block; font-size: 11px; font-weight: 600; opacity: .72; margin-top: 3px; }
+.opt-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 18px 0 8px; }
+
+/* 입력 줄 */
+.f { margin-bottom: 16px; }
+.f label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 7px; }
+.f input { width: 100%; padding: 15px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 17px; font-family: inherit; }
+.f input:focus { outline: none; border-color: var(--brand); }
+.f .err { min-height: 17px; font-size: 12.5px; color: var(--bad-text); margin-top: 5px; font-weight: 600; }
+.f .ok { color: #1c7a3e; }
+.dim3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* 아래 버튼 */
+.step-actions { display: flex; gap: 10px; margin-top: 24px; }
+.step-actions button { min-height: 56px; border-radius: 12px; font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; border: none; }
+#prevBtn { flex: 1; background: #fff; color: var(--text); border: 1.5px solid var(--border); }
+#nextBtn { flex: 2.2; background: var(--brand); color: #fff; }
+#nextBtn:disabled { background: #b6c2cf; cursor: not-allowed; }
+
+/* 마지막 확인 */
+.sum { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.sum-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; font-size: 14px; border-bottom: 1px solid var(--border); }
+.sum-row:last-child { border-bottom: none; }
+.sum-row .k { color: var(--muted); font-weight: 600; flex-shrink: 0; }
+.sum-row .v { font-weight: 700; text-align: right; }
+.big-price { text-align: center; padding: 22px 10px; background: var(--ok-bg); border: 1px solid var(--ok-border); border-radius: 12px; margin: 14px 0; }
+.big-price .won { font-size: 40px; font-weight: 800; color: var(--brand-dark); line-height: 1.1; }
+.big-price .eta { font-size: 13.5px; color: var(--muted); margin-top: 7px; }
+details.why { margin-top: 12px; border: 1px solid var(--calc-border); border-radius: 10px; background: var(--calc-bg); }
+details.why summary { padding: 13px 14px; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--brand-dark); }
+details.why .why-body { padding: 0 14px 12px; }
+
+/* 📱 모바일 */
+@media (max-width: 560px) {
+  body { padding: 0 0 12px; }
+  .page { max-width: 100%; }
+  .topbar { border-radius: 0; }
+  .panel { border-radius: 0; border-left: none; border-right: none; padding: 20px 16px 24px; }
+  .nav a { flex: 1; text-align: center; padding: 12px 4px; font-size: 12.5px; }
+  .step-q { font-size: 19px; }
+  .opt-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+  .dim3 { grid-template-columns: 1fr; gap: 10px; }
+  .big-price .won { font-size: 34px; }
+  .sum-row { font-size: 13.5px; }
+}

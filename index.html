@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>두두택배 - 접수하기</title>
 <!--
-  두두택배 - 접수하기 화면
+  두두택배 - 접수하기 (CU 키오스크식 5단계)
   =================================================
-  네 화면 중 첫 번째. 여기서는 "입력받아 계산해서 저장"까지만 한다.
-  영수증은 done.html, 목록은 list.html, 조회는 track.html 이 맡는다.
-  계산 정본은 calc.js, 디자인은 style.css, 저장은 store.js 에 있다.
+  4LsRETROSPECTIVEDAY14.md 13줄에 적은 컨셉을 그대로 옮겼다 -
+  "지역은 버튼으로 고르게 하고, 전화번호는 자동으로 모양을 맞춰주고,
+   요금과 도착 예정일은 기계가 계산하게"
+  편의점 키오스크는 손가락으로 누르는 기계라 고르는 것은 전부 버튼이다.
+  한 화면에 한 가지만 묻고, 다 채우면 다음으로 넘어간다.
+  계산은 calc.js, 디자인은 style.css, 저장은 store.js 에 있다.
 -->
 <link rel="stylesheet" href="style.css">
 </head>
@@ -17,7 +20,7 @@
 <div class="page">
   <div class="topbar">
     <div class="brand">두두택배 접수</div>
-    <div class="sub">규정 전 조항 반영 / 계산 과정 실시간 표시</div>
+    <div class="sub">접수하기</div>
   </div>
   <nav class="nav">
     <a href="index.html" class="on">접수하기</a>
@@ -25,403 +28,309 @@
     <a href="track.html">운송장 조회</a>
   </nav>
 
-  <div class="layout">
-    <section class="form-panel">
-      <h2>접수 정보 입력</h2>
-      <div class="field-grid">
-        <div class="field">
-          <label for="branch">접수 지점 <span class="req">필수</span></label>
-          <select id="branch" onchange="recalc()"></select>
-          <p class="hint">6개 지점 중에서만 고릅니다. 운송장 앞 2자리가 지점 코드라(규정 §9), 등록 안 된 이름이 들어가면 번호가 <code>00</code>으로 나갑니다.</p>
-        </div>
-        <div class="field">
-          <label for="receiverArea">도착 지역 <span class="req">필수</span></label>
-          <select id="receiverArea" onchange="recalc()"></select>
-          <p class="hint">자유 입력을 없앴습니다. 목록에 없는 값(<code>제주도</code>·<code>재주</code>·<code>SEOUL</code> 등)은 들어갈 수 없습니다.</p>
-        </div>
+  <div class="panel wizard">
+    <div class="steps" id="dots"></div>
+    <p class="step-count" id="stepCount"></p>
 
-        <div class="field wide">
-          <label>배송 권역 <span class="auto-tag">시스템 자동</span></label>
-          <div class="auto-box empty" id="regionAuto">도착 지역을 고르면 자동으로 정해집니다</div>
-          <p class="hint">사람이 적는 칸이 아닙니다. 도착 지역에서 계산합니다(규정 §2). 권역 이름이 지역 칸에 섞여 들어가는 일 자체를 없앴습니다.</p>
-        </div>
+    <section class="step" data-step="1">
+      <h2 class="step-q">어디에서 접수하시나요?</h2>
+      <p class="step-sub">운송장 번호 앞 두 자리가 이 지점 코드가 됩니다 (규정 §9).</p>
+      <div class="opt-grid" id="branchGrid"></div>
+    </section>
 
-        <div class="field">
-          <label for="senderName">보내는 분 이름 <span class="req">필수</span></label>
-          <input type="text" id="senderName" placeholder="예: 김민준" oninput="recalc()">
-        </div>
-        <div class="field">
-          <label for="receiverName">받는 분 이름 <span class="req">필수</span></label>
-          <input type="text" id="receiverName" placeholder="예: 이서연" oninput="recalc()">
-        </div>
+    <section class="step" data-step="2">
+      <h2 class="step-q">어디로 보내시나요?</h2>
+      <p class="step-sub">목록에 있는 곳만 고를 수 있습니다. 권역과 요금은 저절로 정해집니다.</p>
+      <div class="opt-grid" id="areaGrid"></div>
+      <div class="opt-label">섬 지역 (도서산간)</div>
+      <div class="opt-grid" id="islandGrid"></div>
+      <div class="opt-label">배송 권역 <span class="auto-tag">자동</span></div>
+      <div class="auto-box empty" id="regionAuto">지역을 고르면 정해집니다</div>
+    </section>
 
-        <div class="field wide">
-          <div class="field-note">
-            ※ 접수 지점은 규정 §7의 6대 필수 입력에는 없지만, §9 운송장 번호
-            형식(앞 2자리 = 접수 지점 코드)에 필요해 이 화면에 추가했다.
-          </div>
-        </div>
-
-        <div class="field wide">
-          <label for="itemName">물품명 <span class="req">필수</span></label>
-          <input type="text" id="itemName" placeholder="예: 이불" oninput="recalc()">
-          <div class="inline-warning" id="bannedWarning"></div>
-        </div>
-
-        <div class="field">
-          <label for="weightKg">실제 무게 (kg) <span class="req">필수</span></label>
-          <input type="number" id="weightKg" placeholder="예: 3.0" step="any" oninput="recalc()">
-        </div>
-        <div class="field"></div>
-
-        <div class="field dims">
-          <label>가로 x 세로 x 높이 (cm) <span class="req">필수</span></label>
-          <div class="row3">
-            <input type="number" id="widthCm" placeholder="가로" step="any" oninput="recalc()">
-            <input type="number" id="heightCm" placeholder="세로" step="any" oninput="recalc()">
-            <input type="number" id="depthCm" placeholder="높이" step="any" oninput="recalc()">
-          </div>
-        </div>
+    <section class="step" data-step="3">
+      <h2 class="step-q">누가 보내고, 누가 받나요?</h2>
+      <p class="step-sub">전화번호는 숫자만 누르시면 모양이 저절로 맞춰집니다.</p>
+      <div class="f">
+        <label for="senderName">보내는 분</label>
+        <input type="text" id="senderName" placeholder="김민준" autocomplete="off">
+        <div class="err" id="e_senderName"></div>
       </div>
+      <div class="f">
+        <label for="receiverName">받는 분</label>
+        <input type="text" id="receiverName" placeholder="이서연" autocomplete="off">
+        <div class="err" id="e_receiverName"></div>
+      </div>
+      <div class="f">
+        <label for="receiverPhone">받는 분 전화</label>
+        <input type="tel" id="receiverPhone" placeholder="010-1234-5678" inputmode="numeric" autocomplete="off">
+        <div class="err" id="e_receiverPhone"></div>
+      </div>
+    </section>
 
+    <section class="step" data-step="4">
+      <h2 class="step-q">무엇을 보내시나요?</h2>
+      <p class="step-sub">무게와 크기로 요금이 정해집니다 (규정 §3·§4).</p>
+      <div class="f">
+        <label for="itemName">물품명</label>
+        <input type="text" id="itemName" placeholder="이불" autocomplete="off">
+        <div class="err" id="e_itemName"></div>
+      </div>
+      <div id="banBox"></div>
       <div class="soft-confirm" id="softConfirmBox" style="display:none">
         <div id="softConfirmText"></div>
-        <label><input type="checkbox" id="staffConfirm" onchange="recalc()"> 위 항목을 직원이 확인했습니다</label>
+        <label><input type="checkbox" id="staffConfirm"> 위 항목을 직원이 확인했습니다</label>
       </div>
-
-      <div class="error-box" id="errorBox"></div>
-
-      <div class="btn-row">
-        <button type="button" class="reset-btn" onclick="resetForm()">새로 입력</button>
-        <button type="button" class="submit-btn" id="submitBtn" disabled onclick="submitShipment()">접수 완료</button>
+      <div class="f">
+        <label for="weightKg">실제 무게 (kg)</label>
+        <input type="number" id="weightKg" placeholder="3.0" step="any" inputmode="decimal">
+        <div class="err" id="e_weightKg"></div>
+      </div>
+      <div class="f">
+        <label>가로 · 세로 · 높이 (cm)</label>
+        <div class="dim3">
+          <input type="number" id="widthCm" placeholder="가로" step="any" inputmode="decimal">
+          <input type="number" id="heightCm" placeholder="세로" step="any" inputmode="decimal">
+          <input type="number" id="depthCm" placeholder="높이" step="any" inputmode="decimal">
+        </div>
+        <div class="err" id="e_dims"></div>
       </div>
     </section>
 
-    <section class="calc-panel">
-      <h2>계산 과정 (규정 그대로, 숫자를 대입해서 보여줍니다)</h2>
-      <div id="calcSteps">
-        <div class="calc-pending">무게・가로・세로・높이를 모두 입력하면 계산 과정이 여기 순서대로 표시됩니다.</div>
-      </div>
-
-      <h3>요금표 - 4등급 x 3권역 12종 전부 (규정 §3)</h3>
-      <table class="rate-table" id="rateTable">
-        <thead><tr><th>등급</th><th>기준(세변합 / 무게)</th><th>일반</th><th>제주</th><th>도서산간</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <section class="step" data-step="5">
+      <h2 class="step-q">이대로 접수할까요?</h2>
+      <div class="big-price" id="bigPrice"></div>
+      <div class="sum" id="summary"></div>
+      <details class="why">
+        <summary>왜 이 요금인가요?</summary>
+        <div class="why-body" id="whyBody"></div>
+      </details>
     </section>
+
+    <div class="step-actions">
+      <button type="button" id="prevBtn">이전</button>
+      <button type="button" id="nextBtn">다음</button>
+    </div>
   </div>
-
 </div>
 
 <script src="calc.js"></script>
 <script src="store.js"></script>
 <script>
-  // 빈 값・숫자아님・0 이하는 전부 null(무효)로 처리한다. A_최소판/D 클론이
-  // 갖고 있던 결함(빈 값이 조용히 0으로 취급되는 것)을 이 파일에서는
-  // 반복하지 않는다 - 무효면 계산을 진행하지 않고 "입력 대기"로 멈춘다.
-  function getNumeric(id) {
-    const raw = document.getElementById(id).value;
-    if (raw === '' || raw === null || raw === undefined) return null;
-    const n = parseFloat(raw);
-    if (isNaN(n) || n <= 0) return null;
-    return n;
+  const TOTAL = 5;
+  const STEP_NAME = ['접수 지점', '도착 지역', '보내는 분·받는 분', '물품·무게·크기', '확인'];
+  let step = 1;
+  const S = { branch: '', area: '' };   // 버튼으로 고르는 값만 여기 담는다
+
+  const $ = id => document.getElementById(id);
+  const val = id => $(id).value.trim();
+
+  // ── 고르는 버튼 ─────────────────────────────────────────
+  function optButton(value, label, sub, onPick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt';
+    b.dataset.value = value;
+    b.innerHTML = sub ? label + '<span class="opt-sub">' + sub + '</span>' : label;
+    b.onclick = () => onPick(value);
+    return b;
+  }
+  function paintPicked(gridIds, picked) {
+    gridIds.forEach(gid => $(gid).querySelectorAll('.opt')
+      .forEach(b => b.classList.toggle('on', b.dataset.value === picked)));
   }
 
-  // ============================================================
-  // 렌더링
-  // ============================================================
-  function renderBannedWarning(ban) {
-    const el = document.getElementById('bannedWarning');
-    const box = document.getElementById('softConfirmBox');
-    if (ban.hardHits.length > 0) {
-      const h = ban.hardHits[0];
-      el.innerHTML = `<span class="badge bad">접수 불가 품목입니다 - ${h.category} "${h.keyword}"(규정 §5). 요금 계산 전에 거절합니다.</span>`;
-      box.style.display = 'none';
-    } else if (ban.softHits.length > 0) {
-      const list = ban.softHits.map(h => `"${h.keyword}"(${h.category})`).join(', ');
-      el.innerHTML = `<span class="badge warn">직원 확인이 필요한 낱말이 있습니다 - ${list}. 자동으로 막지도, 그냥 통과시키지도 않습니다(규정 §5 "애매하면 확인 불가로 답하고 사람에게 넘깁니다").</span>`;
-      box.style.display = 'block';
-      document.getElementById('softConfirmText').innerHTML =
-        '아래를 직원이 눈으로 확인한 뒤 체크하세요 (규정 §5).<br>' +
-        ban.softHits.map(h => `・<b>${h.keyword}</b> — ${h.ask}`).join('<br>');
-    } else {
-      el.innerHTML = '';
-      box.style.display = 'none';
+  BRANCHES.forEach(b => $('branchGrid').appendChild(
+    optButton(b.name, b.name.replace('지점', ''), '코드 ' + b.code, v => {
+      S.branch = v;
+      paintPicked(['branchGrid'], v);
+      sync();
+      setTimeout(() => go(2), 160);          // 키오스크답게 바로 다음 화면으로
+    })));
+
+  function pickArea(v) {
+    S.area = v;
+    paintPicked(['areaGrid', 'islandGrid'], v);
+    const region = determineRegion(v);
+    const box = $('regionAuto');
+    box.className = 'auto-box';
+    box.textContent = region + ' · 접수 후 ' + ETA_BUSINESS_DAYS[region] + '영업일';
+    sync();
+    setTimeout(() => go(3), 200);
+  }
+  AREA_LIST.filter(a => a.region !== '도서산간').forEach(a => $('areaGrid').appendChild(
+    optButton(a.area, a.area, a.region === '일반' ? null : a.region, pickArea)));
+  AREA_LIST.filter(a => a.region === '도서산간').forEach(a => $('islandGrid').appendChild(
+    optButton(a.area, a.area, null, pickArea)));
+
+  // ── 전화번호는 치는 대로 모양을 맞춘다 ──────────────────
+  $('receiverPhone').addEventListener('input', e => {
+    e.target.value = formatPhone(e.target.value);
+    sync();
+  });
+  ['senderName', 'receiverName', 'itemName', 'weightKg', 'widthCm', 'heightCm', 'depthCm']
+    .forEach(id => $(id).addEventListener('input', sync));
+  $('staffConfirm').addEventListener('change', sync);
+
+  // ── 단계별 검사 ─────────────────────────────────────────
+  function checkStep(n) {
+    const errs = {};
+    if (n === 1 && !branchCodeOf(S.branch)) errs._ = '접수 지점을 골라 주세요.';
+    if (n === 2 && !determineRegion(S.area)) errs._ = '도착 지역을 골라 주세요.';
+    if (n === 3) {
+      if (!val('senderName')) errs.senderName = '보내는 분 이름을 입력해 주세요.';
+      if (!val('receiverName')) errs.receiverName = '받는 분 이름을 입력해 주세요.';
+      else if (/[()（）]|님\s*$/.test(val('receiverName')))
+        errs.receiverName = '이름만 적어 주세요. 요청사항·호칭은 넣지 않습니다.';
+      const p = val('receiverPhone');
+      if (!p) errs.receiverPhone = '받는 분 전화번호를 입력해 주세요.';
+      else if (!isValidPhone(p)) errs.receiverPhone = '자릿수가 맞지 않습니다 (지금 ' + phoneDigits(p).length + '자리).';
     }
-  }
-
-  // 권역은 보여주기만 하는 칸이다. 사람이 못 고친다(정책서 receiver_area
-  // 예외2 - "권역은 지역에서 자동 계산하고, 사람이 적는 칸에서 없앤다").
-  function renderRegionAuto(area) {
-    const el = document.getElementById('regionAuto');
-    const region = determineRegion(area);
-    if (!region) {
-      el.className = 'auto-box empty';
-      el.textContent = '도착 지역을 고르면 자동으로 정해집니다';
-    } else {
-      el.className = 'auto-box';
-      el.textContent = region + (region === '일반' ? '' : ` (${ETA_BUSINESS_DAYS[region]}영업일 소요)`);
-    }
-  }
-
-  function step(no, title, body) {
-    return `<div class="calc-step">
-      <div class="calc-step-title">${no}. ${title}</div>
-      <div class="calc-step-body">${body}</div>
-    </div>`;
-  }
-
-  function renderRateTable(matchedGrade, matchedRegion) {
-    const tbody = document.querySelector('#rateTable tbody');
-    tbody.innerHTML = RATE_TABLE.map(tier => {
-      const isGradeMatch = tier.grade === matchedGrade;
-      function cell(region) {
-        const hit = isGradeMatch && matchedRegion === region;
-        return `<td class="${hit ? 'cell-match' : ''}">${tier.price[region].toLocaleString('ko-KR')}원</td>`;
+    if (n === 4) {
+      if (!val('itemName')) errs.itemName = '물품명을 입력해 주세요.';
+      const ban = checkBanned(val('itemName'));
+      if (ban.hardHits.length) {
+        errs.itemName = '접수 불가 품목입니다 — ' + ban.hardHits[0].category +
+          ' "' + ban.hardHits[0].keyword + '" (규정 §5).';
+      } else if (ban.softHits.length && !$('staffConfirm').checked) {
+        errs.itemName = '직원 확인 체크가 필요합니다.';
       }
-      return `<tr class="${isGradeMatch ? 'grade-match' : ''}">
-        <td>${tier.grade}</td>
-        <td>${tier.maxSum}cm 이하 / ${tier.maxWeight}kg 이하</td>
-        ${cell('일반')}${cell('제주')}${cell('도서산간')}
-      </tr>`;
-    }).join('');
-  }
-
-  function renderCalcPending() {
-    document.getElementById('calcSteps').innerHTML =
-      '<div class="calc-pending">무게・가로・세로・높이를 모두 입력하면 계산 과정이 여기 순서대로 표시됩니다.</div>';
-    renderRateTable(null, null);
-  }
-
-  function renderCalcBannedStop(itemName, hit) {
-    document.getElementById('calcSteps').innerHTML = `<div class="calc-step reject">
-      <div class="calc-step-title">1. 금지 품목 확인 (규정 §8-1) - 여기서 중단</div>
-      <div class="calc-step-body">물품명 "${itemName}" -> ${hit.category} 분류 "${hit.keyword}"에 걸림 (규정 §5).
-      요금 계산 전에 거절합니다. 부피 무게・등급・요금은 계산하지 않습니다.</div>
-    </div>`;
-    renderRateTable(null, null);
-  }
-
-  function renderCalcSteps(weight, width, height, depth, area) {
-    const volumeWeightKg = (width * height * depth) / 6000;
-    const billedWeightKg = Math.max(weight, volumeWeightKg);
-    const sumCm = width + height + depth;
-    const gt = gradeTrace(sumCm, billedWeightKg);
-
-    let html = '';
-    html += step('1', '부피 무게 계산 (규정 §4)',
-      `가로${width} x 세로${height} x 높이${depth} / 6000 = <b>${volumeWeightKg.toFixed(2)}kg</b>`);
-    html += step('2', '요금 무게 (규정 §4)',
-      `실제 무게 ${weight}kg 과 부피 무게 ${volumeWeightKg.toFixed(2)}kg 중 큰 값 = <b>${billedWeightKg.toFixed(2)}kg</b>`);
-    html += step('3', '세 변의 합 (규정 §3)',
-      `${width} + ${height} + ${depth} = <b>${sumCm}cm</b>`);
-
-    const gradeDetail = gt.lines.map(l => {
-      const mark = l.pass ? '통과 -> 이 등급 채택'
-        : (!l.sumOk && !l.wtOk ? '세변합・무게 둘 다 기준 초과'
-        : (!l.sumOk ? '세변합 기준 초과' : '무게 기준 초과'));
-      return `${l.grade}(세변합 ${l.maxSum}cm 이하 / 무게 ${l.maxWeight}kg 이하): ${mark}`;
-    }).join('<br>');
-    html += step('4', '크기 등급 판정 (규정 §3, §8-4)', gradeDetail);
-
-    if (!gt.matched) {
-      html += `<div class="calc-step reject">
-        <div class="calc-step-title">접수 불가 (규정 §3, §8-5)</div>
-        <div class="calc-step-body">대형 상한(세 변의 합 160cm 또는 요금 무게 25kg)을 넘었습니다.
-        지금 값 - 세 변의 합 ${sumCm}cm, 요금 무게 ${billedWeightKg.toFixed(2)}kg.</div>
-      </div>`;
-      document.getElementById('calcSteps').innerHTML = html;
-      renderRateTable(null, null);
-      return;
+      const w = checkNumber('weightKg', val('weightKg'));
+      if (w.err) errs.weightKg = w.err;
+      const dims = ['widthCm', 'heightCm', 'depthCm'].map(k => checkNumber(k, val(k)));
+      const dimErr = dims.find(d => d.err);
+      if (dimErr) errs.dims = dimErr.err;
+      if (!w.err && !dimErr) {
+        const sum = dims.reduce((t, d) => t + d.n, 0);
+        const bw = Math.max(w.n, dims.reduce((t, d) => t * d.n, 1) / 6000);
+        if (!determineGrade(sum, bw)) {
+          errs.dims = '대형 상한을 넘었습니다 — 세 변의 합 ' + sum + 'cm, 요금 무게 ' +
+            bw.toFixed(2) + 'kg (규정 §3). 상담원을 연결해 주세요.';
+        }
+      }
     }
-
-    // 목록에 없는 지역이면 여기서 멈춘다. 요금을 찍지 않는다.
-    const region = determineRegion(area);
-    if (!region) {
-      html += `<div class="calc-step pending-note">
-        <div class="calc-step-title">5. 권역 판정 (규정 §2, §8-6)</div>
-        <div class="calc-step-body">도착 지역을 목록에서 고르면 권역・요금・도착예정일까지 이어서 계산됩니다.</div>
-      </div>`;
-      document.getElementById('calcSteps').innerHTML = html;
-      renderRateTable(gt.matched, null);
-      return;
-    }
-
-    const tier = RATE_TABLE.find(t => t.grade === gt.matched);
-    const price = tier.price[region];
-    const etaInfo = addBusinessDaysTrace(new Date(), ETA_BUSINESS_DAYS[region]);
-    const specialNote = (area === '경남')
-      ? '거제・진주를 포함한 경남 전역은 다리・도로로 연결된 일반 지역입니다(규정 §2 "주의" 조항, 도서산간이 아닙니다). -> '
-      : '';
-
-    html += step('5', '권역 판정 (규정 §2, §8-6)',
-      `도착 지역 "${area}" -> ${specialNote}<b>${region}</b>`);
-    html += step('6', '요금 조회 (규정 §3 요금표)',
-      `${gt.matched} 등급 x ${region} 권역 = <b>${formatWon(price)}</b>`);
-
-    const etaDetail = etaInfo.trace.map(t =>
-      `${formatDateISO(t.date)}(${WEEKDAY_KO[t.dow]}) - ${t.isWeekend ? '주말이라 제외' : `영업일 ${t.countedAt}일째`}`
-    ).join('<br>');
-    html += step('7', `도착 예정일 (규정 §6, §8-7 - ${region}은 접수 후 +${ETA_BUSINESS_DAYS[region]}영업일)`,
-      `${etaDetail}<br>도착 예정 -> <b>${formatDateISO(etaInfo.finalDate)}(${WEEKDAY_KO[etaInfo.finalDate.getDay()]})</b>`);
-
-    document.getElementById('calcSteps').innerHTML = html;
-    renderRateTable(gt.matched, region);
+    return errs;
   }
 
-  // ============================================================
-  // 검증 + 상태 갱신 (필수값 / 금지품목 / 한도초과 - 규정의 검증 전부)
-  // ============================================================
-  function validateAll() {
-    const errors = [];
-    const branch = document.getElementById('branch').value;
-    const senderName = document.getElementById('senderName').value.trim();
-    const receiverName = document.getElementById('receiverName').value.trim();
-    const area = document.getElementById('receiverArea').value;
-    const itemName = document.getElementById('itemName').value.trim();
-    const weight = getNumeric('weightKg');
-    const width = getNumeric('widthCm');
-    const height = getNumeric('heightCm');
-    const depth = getNumeric('depthCm');
-
-    if (!branch) errors.push('접수 지점을 선택하세요.');
-    else if (!branchCodeOf(branch)) errors.push(`등록되지 않은 지점입니다 - 운송장 앞 2자리(지점 코드, 규정 §9)를 만들 수 없어 발급을 막습니다.`);
-    if (!senderName) errors.push('보내는 분 이름을 입력하세요.');
-    if (!receiverName) errors.push('받는 분 이름을 입력하세요.');
-    if (!area) errors.push('도착 지역을 선택하세요.');
-    if (!itemName) errors.push('물품명을 입력하세요.');
-    if (weight === null) errors.push('실제 무게를 0보다 큰 숫자로 입력하세요.');
-    if (width === null || height === null || depth === null) errors.push('가로・세로・높이를 모두 0보다 큰 숫자로 입력하세요.');
-
-    const ban = checkBanned(itemName);
-    if (ban.hardHits.length > 0) {
-      const h = ban.hardHits[0];
-      errors.push(`접수 불가 품목입니다 - ${h.category} "${h.keyword}"(규정 §5). 요금 계산 전에 거절합니다.`);
+  // ── 화면 갱신 ───────────────────────────────────────────
+  function sync() {
+    if (step === 4) {
+      const ban = checkBanned(val('itemName'));
+      const box = $('banBox'), soft = $('softConfirmBox');
+      if (ban.hardHits.length) {
+        const h = ban.hardHits[0];
+        box.innerHTML = '<span class="badge bad">접수 불가 — ' + h.category + ' "' + h.keyword +
+          '" (규정 §5). 요금 계산 전에 거절합니다.</span>';
+        soft.style.display = 'none';
+      } else if (ban.softHits.length) {
+        box.innerHTML = '<span class="badge warn">직원 확인이 필요한 낱말이 있습니다 ' +
+          '(규정 §5 "애매하면 사람에게 넘깁니다").</span>';
+        soft.style.display = 'block';
+        $('softConfirmText').innerHTML = ban.softHits
+          .map(h => '・<b>' + h.keyword + '</b> — ' + h.ask).join('<br>');
+      } else {
+        box.innerHTML = '';
+        soft.style.display = 'none';
+      }
     }
-    if (ban.softHits.length > 0 && !document.getElementById('staffConfirm').checked) {
-      errors.push(`직원 확인이 필요한 낱말이 있습니다(${ban.softHits.map(h => h.keyword).join(', ')}) - 확인 체크가 필요합니다(규정 §5).`);
-    }
-
-    if (weight !== null && width !== null && height !== null && depth !== null) {
-      const sumCm = width + height + depth;
-      const billedWeightKg = Math.max(weight, (width * height * depth) / 6000);
-      const grade = determineGrade(sumCm, billedWeightKg);
-      if (!grade) errors.push(`대형 상한 초과로 접수할 수 없습니다(세 변의 합 ${sumCm.toFixed(1)}cm, 요금 무게 ${billedWeightKg.toFixed(2)}kg - 규정 §3).`);
-    }
-    return errors;
+    const errs = checkStep(step);
+    ['senderName', 'receiverName', 'receiverPhone', 'itemName', 'weightKg', 'dims']
+      .forEach(k => { const el = $('e_' + k); if (el) el.textContent = errs[k] || ''; });
+    $('nextBtn').disabled = Object.keys(errs).length > 0;
   }
 
-  function updateSubmitState() {
-    const errors = validateAll();
-    document.getElementById('submitBtn').disabled = errors.length > 0;
-    document.getElementById('errorBox').innerHTML = errors.length > 0
-      ? '<div class="error-title">접수 완료를 누르려면</div><ul>' + errors.map(e => `<li>${e}</li>`).join('') + '</ul>'
-      : '';
+  function go(n) {
+    if (n > step && Object.keys(checkStep(step)).length) return;
+    step = Math.min(TOTAL, Math.max(1, n));
+    document.querySelectorAll('.step').forEach(s =>
+      s.classList.toggle('on', Number(s.dataset.step) === step));
+    $('dots').innerHTML = Array.from({ length: TOTAL }, (_, i) =>
+      '<div class="dot ' + (i + 1 < step ? 'done' : i + 1 === step ? 'on' : '') + '"></div>').join('');
+    $('stepCount').textContent = step + ' / ' + TOTAL + ' · ' + STEP_NAME[step - 1];
+    $('prevBtn').style.visibility = step === 1 ? 'hidden' : 'visible';
+    $('nextBtn').textContent = step === TOTAL ? '접수 완료' : '다음';
+    if (step === TOTAL) renderConfirm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    sync();
   }
 
-  function recalc() {
-    const itemName = document.getElementById('itemName').value;
-    const ban = checkBanned(itemName);
-    renderBannedWarning(ban);
-
-    const weight = getNumeric('weightKg');
-    const width = getNumeric('widthCm');
-    const height = getNumeric('heightCm');
-    const depth = getNumeric('depthCm');
-    const area = document.getElementById('receiverArea').value;
-    renderRegionAuto(area);
-
-    // 계산 순서 1번(규정 §8-1) - 금지 품목이면 부피무게・등급・요금을
-    // 계산하지 않고 여기서 멈춘다. "요금 계산 전에 거절합니다"를 계산
-    // 패널에서도 그대로 지킨다(하드 차단만 - 시계 같은 소프트 확인
-    // 대상은 계산을 계속 보여주고 확인 체크로 넘어가게 둔다).
-    if (ban.hardHits.length > 0) {
-      renderCalcBannedStop(itemName, ban.hardHits[0]);
-    } else if (weight === null || width === null || height === null || depth === null) {
-      renderCalcPending();
-    } else {
-      renderCalcSteps(weight, width, height, depth, area);
-    }
-    updateSubmitState();
+  // ── 마지막 확인 화면 ────────────────────────────────────
+  function draft() {
+    const w = Number(val('weightKg'));
+    const x = Number(val('widthCm')), y = Number(val('heightCm')), z = Number(val('depthCm'));
+    const vol = (x * y * z) / 6000, billed = Math.max(w, vol), sum = x + y + z;
+    const grade = determineGrade(sum, billed), region = determineRegion(S.area);
+    const price = RATE_TABLE.find(t => t.grade === grade).price[region];
+    const eta = addBusinessDaysTrace(new Date(), ETA_BUSINESS_DAYS[region]);
+    return { w, x, y, z, vol, billed, sum, grade, region, price, eta };
   }
 
-  // ============================================================
-  // 접수 완료 - 저장하고 완료 화면으로 넘긴다
-  // ============================================================
-  function submitShipment() {
-    const errors = validateAll();
-    if (errors.length > 0) { updateSubmitState(); return; }
+  function renderConfirm() {
+    const d = draft();
+    $('bigPrice').innerHTML =
+      '<div class="won">' + formatWon(d.price) + '</div>' +
+      '<div class="eta">' + d.grade + ' · ' + d.region + ' · 도착 예정 ' +
+      formatDateISO(d.eta.finalDate) + '(' + WEEKDAY_KO[d.eta.finalDate.getDay()] + ')</div>';
 
-    const branchName = document.getElementById('branch').value.trim();
-    const branchCode = branchCodeOf(branchName);
-    const senderName = document.getElementById('senderName').value.trim();
-    const receiverName = document.getElementById('receiverName').value.trim();
-    const area = document.getElementById('receiverArea').value;
-    const itemName = document.getElementById('itemName').value.trim();
-    const weight = getNumeric('weightKg');
-    const width = getNumeric('widthCm');
-    const height = getNumeric('heightCm');
-    const depth = getNumeric('depthCm');
+    const rows = [
+      ['접수 지점', S.branch + ' (' + branchCodeOf(S.branch) + ')'],
+      ['보내는 분', val('senderName')],
+      ['받는 분', val('receiverName') + ' · ' + val('receiverPhone')],
+      ['도착 지역', S.area + ' · ' + d.region + ' 권역'],
+      ['물품', val('itemName')],
+      ['실제 무게', d.w + 'kg'],
+      ['크기', d.x + ' × ' + d.y + ' × ' + d.z + ' cm (합 ' + d.sum + 'cm)'],
+      ['요금 무게', d.billed.toFixed(2) + 'kg'],
+      ['크기 등급', d.grade],
+    ];
+    $('summary').innerHTML = rows.map(r =>
+      '<div class="sum-row"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>').join('');
 
-    const volumeWeightKg = (width * height * depth) / 6000;
-    const billedWeightKg = Math.max(weight, volumeWeightKg);
-    const sumCm = width + height + depth;
-    const grade = determineGrade(sumCm, billedWeightKg);
-    const region = determineRegion(area);
-    const tier = RATE_TABLE.find(t => t.grade === grade);
-    const price = tier.price[region];
-    const etaInfo = addBusinessDaysTrace(new Date(), ETA_BUSINESS_DAYS[region]);
-    const trackingNo = Store.nextTrackingNo(branchCode);
+    const gt = gradeTrace(d.sum, d.billed);
+    const gradeLines = gt.lines.map(l => l.grade + '(' + l.maxSum + 'cm / ' + l.maxWeight + 'kg): ' +
+      (l.pass ? '<b>통과 → 이 등급</b>'
+        : (!l.sumOk && !l.wtOk ? '둘 다 초과' : !l.sumOk ? '세변합 초과' : '무게 초과'))).join('<br>');
+    const etaLines = d.eta.trace.map(t => formatDateISO(t.date) + '(' + WEEKDAY_KO[t.dow] + ') — ' +
+      (t.isWeekend ? '주말이라 제외' : '영업일 ' + t.countedAt + '일째')).join('<br>');
 
-    const record = {
-      trackingNo, branchName, senderName, receiverName,
-      receiverArea: area, regionType: region, itemName,
-      weightKg: weight, widthCm: width, heightCm: height, depthCm: depth,
-      billedWeightKg: Math.round(billedWeightKg * 10) / 10,
-      sizeGrade: grade, price,
-      etaDate: formatDateISO(etaInfo.finalDate),
-    };
+    $('whyBody').innerHTML =
+      '<div class="calc-step"><div class="calc-step-title">1. 부피 무게 (규정 §4)</div><div class="calc-step-body">' +
+        d.x + ' × ' + d.y + ' × ' + d.z + ' ÷ 6000 = <b>' + d.vol.toFixed(2) + 'kg</b></div></div>' +
+      '<div class="calc-step"><div class="calc-step-title">2. 요금 무게 (규정 §4)</div><div class="calc-step-body">' +
+        '실제 ' + d.w + 'kg 과 부피 ' + d.vol.toFixed(2) + 'kg 중 큰 값 = <b>' + d.billed.toFixed(2) + 'kg</b></div></div>' +
+      '<div class="calc-step"><div class="calc-step-title">3. 크기 등급 (규정 §3)</div><div class="calc-step-body">' +
+        gradeLines + '</div></div>' +
+      '<div class="calc-step"><div class="calc-step-title">4. 요금 (규정 §3 요금표)</div><div class="calc-step-body">' +
+        d.grade + ' × ' + d.region + ' = <b>' + formatWon(d.price) + '</b></div></div>' +
+      '<div class="calc-step"><div class="calc-step-title">5. 도착 예정일 (규정 §6)</div><div class="calc-step-body">' +
+        etaLines + '</div></div>';
+  }
 
-    Store.save(record);
-    // 접수한 건은 done.html 이 보여준다. 이 화면은 다음 손님을 받는다.
+  // ── 접수 ────────────────────────────────────────────────
+  function submit() {
+    const d = draft();
+    Store.save({
+      trackingNo: Store.nextTrackingNo(branchCodeOf(S.branch)),
+      branchName: S.branch,
+      senderName: val('senderName'),
+      receiverName: val('receiverName'),
+      receiverPhone: val('receiverPhone'),
+      receiverArea: S.area,
+      regionType: d.region,
+      itemName: val('itemName'),
+      weightKg: d.w, widthCm: d.x, heightCm: d.y, depthCm: d.z,
+      volumeWeightKg: Math.round(d.vol * 100) / 100,
+      billedWeightKg: Math.round(d.billed * 10) / 10,
+      sizeGrade: d.grade,
+      price: d.price,
+      etaDate: formatDateISO(d.eta.finalDate),
+    });
     location.href = 'done.html';
   }
 
-  function resetForm() {
-    ['senderName', 'receiverName', 'itemName', 'weightKg', 'widthCm', 'heightCm', 'depthCm']
-      .forEach(id => document.getElementById(id).value = '');
-    document.getElementById('branch').value = '';
-    document.getElementById('receiverArea').value = '';
-    document.getElementById('staffConfirm').checked = false;
-    document.getElementById('softConfirmBox').style.display = 'none';
-    recalc();
-  }
-
-  // 선택 목록은 AREA_LIST 정본에서 만든다. HTML에 지역 이름을 손으로 적지
-  // 않는다 - 표와 화면이 어긋날 자리를 아예 만들지 않기 위해서다.
-  (function buildSelects() {
-    function fill(id, rows) {
-      const sel = document.getElementById(id);
-      const first = document.createElement('option');
-      first.value = '';
-      first.textContent = '-- 목록에서 고르세요 --';
-      sel.appendChild(first);
-      rows.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r.value;
-        opt.textContent = r.label;
-        sel.appendChild(opt);
-      });
-    }
-    fill('receiverArea', AREA_LIST.map(a => ({
-      value: a.area,
-      label: a.region === '일반' ? a.area : `${a.area} (${a.region})`,
-    })));
-    // 지점 코드를 같이 보여준다 - 운송장 앞 2자리가 이 코드다(규정 §9).
-    fill('branch', BRANCHES.map(b => ({ value: b.name, label: `${b.name} (${b.code})` })));
-  })();
-
-  recalc();
+  $('prevBtn').onclick = () => go(step - 1);
+  $('nextBtn').onclick = () => (step === TOTAL ? submit() : go(step + 1));
+  go(1);
 </script>
 </body>
 </html>

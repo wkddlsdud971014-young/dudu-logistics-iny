@@ -163,3 +163,56 @@
     if (n === null || n === undefined || isNaN(n)) return '-';
     return n.toLocaleString('ko-KR') + '원';
   }
+
+  // ============================================================
+  // 260807 전화번호 · 입력 범위
+  // 정책서 receiver_phone 예외1(하이픈 누락 345건)·예외2(빈칸 265건),
+  // 무게·치수 예외2(이상값 104건)를 화면에서 막기 위한 정본.
+  // result.md 검산에서 전화번호가 79.3%로 제일 낮았던 칸이다 -
+  // "형식 복원은 안전한 수정이었는데 보류했더니 그대로 감점됐다".
+  // ============================================================
+
+  // 숫자만 남기고 010-1234-5678 모양으로 맞춘다. 서울 02는 자릿수가 달라
+  // 따로 센다. 사람이 하이픈을 치지 않아도 화면이 넣어 준다.
+  function formatPhone(raw) {
+    const d = String(raw || '').replace(/\D/g, '').slice(0, 11);
+    if (d.startsWith('02')) {
+      if (d.length <= 2) return d;
+      if (d.length <= 5) return `${d.slice(0, 2)}-${d.slice(2)}`;
+      if (d.length <= 9) return `${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`;
+      return `${d.slice(0, 2)}-${d.slice(2, 6)}-${d.slice(6, 10)}`;
+    }
+    if (d.length <= 3) return d;
+    if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+    if (d.length <= 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+    return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+  }
+  function phoneDigits(raw) { return String(raw || '').replace(/\D/g, ''); }
+  // 자릿수 검사. 휴대전화는 11자리, 지역번호는 10자리, 서울(02) 옛 국번은
+  // 9자리도 실재한다(02-123-4567). 그 밖이면 저장하지 않는다.
+  function isValidPhone(raw) {
+    const d = phoneDigits(raw);
+    if (d.startsWith('02')) return d.length === 9 || d.length === 10;
+    return d.length === 10 || d.length === 11;
+  }
+
+  // 무게·치수 상한. 상한이 없으면 '9999cm' 같은 자릿수 오타가 그대로 들어간다
+  // (result.md: height_cm 에 3700 = 37의 자릿수 오타가 실재했다).
+  const LIMITS = {
+    weightKg: { min: 0.1, max: 100, label: '실제 무게', unit: 'kg' },
+    widthCm:  { min: 1,   max: 300, label: '가로',      unit: 'cm' },
+    heightCm: { min: 1,   max: 300, label: '세로',      unit: 'cm' },
+    depthCm:  { min: 1,   max: 300, label: '높이',      unit: 'cm' },
+  };
+  // 값 하나를 재서 { n, err } 로 돌려준다. 범위를 벗어나면 n 은 null 이다.
+  function checkNumber(key, raw) {
+    const L = LIMITS[key];
+    const s = String(raw ?? '').trim();
+    if (s === '') return { n: null, err: `${L.label}: 입력해 주세요.` };
+    const n = Number(s);
+    if (!isFinite(n)) return { n: null, err: `${L.label}: 숫자만 입력합니다.` };
+    if (n < L.min || n > L.max) {
+      return { n: null, err: `${L.label}: ${L.min}~${L.max}${L.unit}만 접수합니다 (입력값 ${s}${L.unit})` };
+    }
+    return { n, err: null };
+  }
