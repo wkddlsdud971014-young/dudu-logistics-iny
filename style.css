@@ -610,3 +610,7 @@ details.info th { color: var(--muted); font-weight: 700; }
 /* 버튼 안 글자가 낱말 중간에서 잘리지 않게 (경비실에 맡기/기 처럼) */
 .opt, .cat .cn, .pay .pn, .pay .pw { word-break: keep-all; overflow-wrap: break-word; }
 #noteGrid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+
+/* 면책 동의 문구가 낱말 중간에서 안 끊기게 */
+.agree { align-items: center; }
+.agree span { word-break: keep-all; overflow-wrap: break-word; line-height: 1.75; }

@@ -39,7 +39,7 @@
     <button type="button" class="rules-open" id="go" style="margin-top:4px">조회하기</button>
     <div id="out" style="margin-top:18px"></div>
     <div class="center-actions">
-      <a class="btn-main" href="index.html">접수하기</a>
+      <button type="button" class="btn-main" id="again">다른 번호 조회</button>
       <button type="button" class="btn-sub" onclick="Rules.open()">요금 규정 보기</button>
     </div>
   </div>
@@ -97,10 +97,31 @@
         row('요금', formatWon(r.price) + ' ' + show(r.payType)) +
         row('도착 예정', show(r.etaDate) + (days ? ' (' + Rules.dayWords(days) + ')' : '')) +
       '</div></div>' +
-      '<button type="button" class="rules-open" onclick=\'Rules.open(' +
-        JSON.stringify(r).replace(/'/g, "&#39;") + ')\'>이 요금이 어떻게 나왔는지 규정에서 확인하기</button>' +
+      '<button type="button" class="rules-open" id="why">이 요금이 어떻게 나왔는지 규정에서 확인하기</button>' +
       (got.offline ? '<p class="tip" style="text-align:center">⚠️ 서버에 못 닿아 이 브라우저 것을 보여드렸습니다</p>' : '');
+    // 인라인으로 붙이면 따옴표가 섞여 안 열린다. 코드로 붙인다.
+    $('why').onclick = () => Rules.open(r);
   }
+
+  $('again').onclick = () => {
+    $('out').innerHTML = '';
+    $('q').value = '';
+    $('q').focus();
+  };
+
+  // 접수 직후 넘어오면 방금 그 번호를 넣어 드릴지 여쭤본다
+  (function fromReceipt() {
+    const p = new URLSearchParams(location.search).get('no');
+    const no = String(p || '').replace(/\D/g, '');
+    if (no.length !== 10) return;
+    const pretty = no.slice(0, 2) + ' ' + no.slice(2);
+    if (confirm('방금 접수하신 운송장 번호 ' + pretty + ' 로 조회할까요?\n\n[취소] 를 누르시면 다른 번호를 넣으실 수 있습니다.')) {
+      $('q').value = pretty;
+      find();
+    } else {
+      $('q').focus();
+    }
+  })();
 </script>
 </body>
 </html>
