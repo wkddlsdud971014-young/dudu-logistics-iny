@@ -579,3 +579,30 @@ details.info th { color: var(--muted); font-weight: 700; }
 .scale-foot { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 11.5px; color: var(--muted); }
 .scale-foot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cu-green); flex-shrink: 0; }
 @media (max-width: 560px) { .scale-lcd .digits { font-size: 32px; } }
+
+/* ── 관리자 들어가는 문 (오른쪽 위) ───────────────────────── */
+.topbar { position: relative; }
+.admin-link {
+  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  padding: 7px 13px; border-radius: 9px; background: rgba(255,255,255,.16);
+  color: #fff; text-decoration: none; font-size: 12.5px; font-weight: 700;
+}
+.admin-link:hover { background: rgba(255,255,255,.3); }
+@media (max-width: 560px) { .admin-link { right: 12px; padding: 6px 10px; font-size: 11.5px; } }
+
+/* ── 비밀번호 묻는 칸 ─────────────────────────────────────── */
+.lock { max-width: 340px; margin: 30px auto; text-align: center; }
+.lock .ico { font-size: 40px; }
+.lock h3 { font-size: 17px; font-weight: 800; margin: 14px 0 6px; }
+.lock p { font-size: 13px; color: var(--muted); margin: 0 0 20px; line-height: 1.7; }
+.lock input {
+  width: 100%; padding: 15px; border: 1.5px solid var(--border); border-radius: 12px;
+  font-size: 20px; text-align: center; letter-spacing: 8px; font-family: inherit;
+}
+.lock input:focus { outline: none; border-color: var(--brand); }
+.lock .err { min-height: 20px; font-size: 13px; color: var(--bad-text); font-weight: 700; margin-top: 9px; }
+.lock button { width: 100%; min-height: 52px; margin-top: 6px; border: none; border-radius: 12px;
+  background: var(--brand); color: #fff; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; }
+.admin-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.admin-out { background: none; border: 1.5px solid var(--border); border-radius: 9px; padding: 7px 13px;
+  font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }

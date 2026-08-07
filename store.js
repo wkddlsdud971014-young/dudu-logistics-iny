@@ -82,6 +82,26 @@ const Store = {
     }
   },
 
+  // ── 관리자 목록 ─────────────────────────────────────────
+  // 비밀번호는 서버가 검사한다. 여기서는 들고 갈 뿐이다.
+  async adminList(pass) {
+    try {
+      const r = await fetch('/api/shipments', { headers: { 'x-admin-pass': pass || '' } });
+      const data = await r.json().catch(() => ({}));
+      if (r.status === 401) return { denied: true, error: data.error || '비밀번호가 다릅니다' };
+      if (r.ok && Array.isArray(data.rows)) return { rows: data.rows, where: '서버' };
+      throw new Error(data.error || ('서버가 ' + r.status + ' 로 답했습니다'));
+    } catch (e) {
+      return { rows: this._local().slice().reverse(), where: '이 브라우저',
+               offline: true, error: String(e && e.message) };
+    }
+  },
+
+  PASS: 'dudu.adminpass',
+  savePass(p) { sessionStorage.setItem(this.PASS, p); },
+  getPass() { return sessionStorage.getItem(this.PASS) || ''; },
+  forgetPass() { sessionStorage.removeItem(this.PASS); },
+
   // ── 운송장 번호로 한 건 찾기 ────────────────────────────
   async find(trackingNo) {
     const no = String(trackingNo || '').replace(/\D/g, '');

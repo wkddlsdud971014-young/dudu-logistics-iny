@@ -9,6 +9,9 @@
 
 const URL_ = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_ANON_KEY;
+// 관리자 비밀번호. 화면 코드에 적지 않는다 - 적으면 소스 보기로 다 보인다.
+// 값은 .env 와 Vercel Settings 두 곳에만 둔다.
+const ADMIN = process.env.ADMIN_PASSWORD;
 
 // 화면이 쓰는 이름 -> 표의 칸 이름
 const TO_DB = {
@@ -64,8 +67,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // ── 목록 보기 ──
+    // ── 목록 보기 (관리자만) ──
+    // 접수 목록에는 손님 이름·전화가 들어 있어서 아무나 보면 안 된다.
+    // 접수(POST)는 손님이 하는 일이라 막지 않는다.
     if (req.method === 'GET') {
+      const pass = req.headers['x-admin-pass'] || '';
+      if (!ADMIN) return res.status(500).json({ error: '서버에 관리자 비밀번호가 없습니다' });
+      if (pass !== ADMIN) return res.status(401).json({ error: '비밀번호가 다릅니다' });
       const r = await sb('shipments?select=*&order=id.desc&limit=300');
       const body = await r.json();
       if (!r.ok) return res.status(r.status).json({ error: body.message || '조회 실패', detail: body });

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>두두택배 - 관리자</title>
+<!--
+  두두택배 - 관리자 (접수 목록)
+  =================================================
+  접수 목록에는 손님 이름·전화가 들어 있어서 아무나 보면 안 된다.
+  그래서 손님 화면(접수·조회)에서 떼어 여기로 옮겼다.
+
+  비밀번호는 이 파일에 없다. 서버(api/shipments.js)가 검사한다.
+  화면에 적어 두면 소스 보기로 다 보이기 때문이다.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="brand">두두택배 관리자</div>
+    <div class="sub">접수 목록</div>
+    <a class="admin-link" href="index.html">접수 화면</a>
+  </div>
+  <div class="panel" id="panel"></div>
+</div>
+
+<script src="calc.js"></script>
+<script src="store.js"></script>
+<script src="rules.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const panel = $('panel');
+
+  function lockScreen(msg) {
+    panel.innerHTML =
+      '<div class="lock">' +
+        '<div class="ico">🔒</div>' +
+        '<h3>관리자 확인</h3>' +
+        '<p>접수 목록에는 손님 이름과 전화번호가 들어 있습니다.<br>비밀번호를 넣어 주세요.</p>' +
+        '<input type="password" id="pw" inputmode="numeric" autocomplete="off" placeholder="••••">' +
+        '<div class="err" id="pwerr">' + (msg || '') + '</div>' +
+        '<button type="button" id="pwgo">들어가기</button>' +
+      '</div>';
+    $('pw').focus();
+    $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryPass(); });
+    $('pwgo').onclick = tryPass;
+  }
+
+  async function tryPass() {
+    const p = $('pw').value.trim();
+    if (!p) { $('pwerr').textContent = '비밀번호를 넣어 주세요.'; return; }
+    $('pwgo').textContent = '확인 중...';
+    const got = await Store.adminList(p);
+    $('pwgo').textContent = '들어가기';
+    if (got.denied) { $('pwerr').textContent = got.error; $('pw').value = ''; $('pw').focus(); return; }
+    Store.savePass(p);
+    render(got);
+  }
+
+  function render(got) {
+    const rows = got.rows || [];
+    const priced = rows.filter(s => typeof s.price === 'number' && isFinite(s.price));
+    const total = priced.reduce((sum, s) => sum + s.price, 0);
+    const noPrice = rows.length - priced.length;
+    const tests = rows.filter(s => s.is_test === true || s.isTest === true).length;
+
+    const body = rows.length === 0
+      ? '<tr class="empty-row"><td colspan="17">아직 접수 내역이 없습니다</td></tr>'
+      : rows.map(s => '<tr>' +
+          '<td>' + show(s.trackingNo) + '</td><td>' + show(s.branchName) + '</td>' +
+          '<td>' + show(s.senderName) + '</td><td>' + show(s.senderPhone) + '</td>' +
+          '<td>' + show(s.receiverName) + '</td><td>' + show(s.receiverPhone) + '</td>' +
+          '<td>' + show(s.receiverArea) + '</td><td>' + show(s.receiverDong) + '</td>' +
+          '<td>' + show(s.regionType) + '</td><td>' + show(s.category) + '</td>' +
+          '<td>' + show(s.itemName) + '</td><td>' + show(s.billedWeightKg, 'kg') + '</td>' +
+          '<td>' + show(s.sizeGrade) + '</td><td>' + show(s.deliveryNote) + '</td>' +
+          '<td>' + show(s.payType) + '</td><td>' + formatWon(s.price) + '</td>' +
+          '<td>' + show(s.etaDate) + '</td></tr>').join('');
+
+    panel.innerHTML =
+      '<div class="admin-head">' +
+        '<h2 style="margin:0;font-size:16px">접수 목록</h2>' +
+        '<button type="button" class="admin-out" id="out">나가기</button>' +
+      '</div>' +
+      '<p class="count-line">' +
+        rows.length + '건 · 합계 ' + formatWon(total) +
+        (noPrice ? ' (요금 없는 ' + noPrice + '건 제외)' : '') +
+        (tests ? ' · 연습 ' + tests + '건' : '') +
+        (got.offline ? ' · ⚠️ 서버에 못 닿아 이 브라우저 것만 보입니다' : ' · 서버에서 읽었습니다') +
+      '</p>' +
+      '<div class="list-section"><table><thead><tr>' +
+        '<th>운송장</th><th>지점</th><th>보내는분</th><th>보내는전화</th>' +
+        '<th>받는분</th><th>받는전화</th><th>지역</th><th>상세주소</th><th>권역</th>' +
+        '<th>종류</th><th>물품</th><th>요금무게</th><th>등급</th><th>요청사항</th>' +
+        '<th>결제</th><th>요금</th><th>도착예정</th>' +
+      '</tr></thead><tbody>' + body + '</tbody></table></div>' +
+      '<div class="center-actions">' +
+        '<a class="btn-main" href="index.html">접수 화면</a>' +
+        '<button type="button" class="btn-sub" onclick="Rules.open()">요금 규정 보기</button>' +
+      '</div>';
+
+    $('out').onclick = () => { Store.forgetPass(); lockScreen(''); };
+  }
+
+  // 아까 넣은 비밀번호가 남아 있으면 바로 들어간다 (탭을 닫으면 사라진다)
+  (async () => {
+    const saved = Store.getPass();
+    if (!saved) return lockScreen('');
+    const got = await Store.adminList(saved);
+    if (got.denied) { Store.forgetPass(); return lockScreen(''); }
+    render(got);
+  })();
+</script>
+</body>
+</html>
