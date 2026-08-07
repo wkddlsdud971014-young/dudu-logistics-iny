@@ -64,6 +64,10 @@
   h3 { font-size: 13px; color: var(--muted); margin: 18px 0 8px; }
 
   .field-note { font-size: 11.5px; color: var(--muted); margin: -8px 0 14px; line-height: 1.5; }
+  .hint { font-size: 11.5px; color: var(--muted); margin: 6px 0 0; line-height: 1.5; }
+  .auto-tag { display: inline-block; font-size: 10.5px; font-weight: 700; color: #fff; background: var(--brand); border-radius: 4px; padding: 2px 6px; vertical-align: middle; }
+  .auto-box { padding: 11px 12px; border: 1px dashed var(--calc-border); border-radius: 8px; background: #eef2f7; font-size: 15px; font-weight: 800; color: var(--brand-dark); }
+  .auto-box.empty { font-weight: 400; font-size: 13px; color: var(--muted); }
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .field.wide, .field.dims { grid-column: 1 / -1; }
   .field label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
@@ -143,8 +147,14 @@
         </div>
         <div class="field">
           <label for="receiverArea">도착 지역 <span class="req">필수</span></label>
-          <input type="text" id="receiverArea" oninput="recalc()" placeholder="서울" autocomplete="off">
-          <p class="hint">제주는 제주 권역, 울릉도·백령도·흑산도·거문도·추자도는 도서산간, 나머지는 전부 일반입니다. 거제와 진주도 일반입니다.</p>
+          <select id="receiverArea" onchange="recalc()"></select>
+          <p class="hint">자유 입력을 없앴습니다. 목록에 없는 값(<code>제주도</code>·<code>재주</code>·<code>SEOUL</code> 등)은 들어갈 수 없습니다.</p>
+        </div>
+
+        <div class="field wide">
+          <label>배송 권역 <span class="auto-tag">시스템 자동</span></label>
+          <div class="auto-box empty" id="regionAuto">도착 지역을 고르면 자동으로 정해집니다</div>
+          <p class="hint">사람이 적는 칸이 아닙니다. 도착 지역에서 계산합니다(규정 §2). 권역 이름이 지역 칸에 섞여 들어가는 일 자체를 없앴습니다.</p>
         </div>
 
         <div class="field">
@@ -253,16 +263,39 @@
   // 어디에도 없다 - 기본값 '일반'로 자연히 떨어지는 것 자체가 그 규정을
   // 지키는 방식이다. '원거리'・'도서' 같은 규정에 없는 이름은 이 파일
   // 어디서도 쓰지 않는다.
-  const ISLAND_AREAS = ['울릉도', '백령도', '흑산도', '거문도', '추자도'];
+  // 260807 도착 지역 정본 목록. 자유 입력을 없애고 이 표에서만 고르게 한다.
+  // 정책서 receiver_area 예외1(표기 갈림 245칸)·예외2(지역 칸에 권역 이름
+  // 혼입 19건)을 화면에서 원천 봉쇄하는 자리다 - 목록에 없는 값은 애초에
+  // 들어갈 수 없으므로 '제주도'・'재주'・'SEOUL' 같은 변형이 생기지 않는다.
+  // 거제・진주는 시・도 단위라 '경남'에 들어가고, 경남이 일반이므로 규정 §2
+  // "주의: 거제, 진주는 일반 지역입니다"가 목록 구조만으로 지켜진다.
+  const AREA_LIST = [
+    { area: '서울', region: '일반' }, { area: '부산', region: '일반' },
+    { area: '대구', region: '일반' }, { area: '인천', region: '일반' },
+    { area: '광주', region: '일반' }, { area: '대전', region: '일반' },
+    { area: '울산', region: '일반' }, { area: '세종', region: '일반' },
+    { area: '경기', region: '일반' }, { area: '강원', region: '일반' },
+    { area: '충북', region: '일반' }, { area: '충남', region: '일반' },
+    { area: '전북', region: '일반' }, { area: '전남', region: '일반' },
+    { area: '경북', region: '일반' }, { area: '경남', region: '일반' },
+    { area: '제주', region: '제주' },
+    { area: '울릉도', region: '도서산간' }, { area: '백령도', region: '도서산간' },
+    { area: '흑산도', region: '도서산간' }, { area: '거문도', region: '도서산간' },
+    { area: '추자도', region: '도서산간' },
+  ];
+  const AREA_REGION = new Map(AREA_LIST.map(a => [a.area, a.region]));
+
   // 260807 지점이 텍스트 입력이라 이름에서 코드를 찾는다. 목록에 없으면 00.
   function branchCodeOf(name) {
     const hit = BRANCHES.find(b => b.name === name);
     return hit ? hit.code : '00';
   }
+  // 모르는 지역은 '일반'으로 떨어뜨리지 않고 null을 돌려준다. 고치기 전에는
+  // 목록에 없는 값이 전부 조용히 일반 요금으로 나갔다 - '제주도' 3,500원,
+  // '재주'(오타) 3,500원. 제주는 6,500원이라 한 건에 3,000원씩 덜 받으면서
+  // 덜 받는 줄도 몰랐다. 조용히 틀리느니 계산을 멈추는 쪽이 낫다.
   function determineRegion(area) {
-    if (area === '제주') return '제주';
-    if (ISLAND_AREAS.includes(area)) return '도서산간';
-    return '일반';
+    return AREA_REGION.has(area) ? AREA_REGION.get(area) : null;
   }
 
   // "하나라도 넘으면 다음 등급"(§3) - 순서대로 검사해 처음 맞는 등급을
@@ -400,6 +433,20 @@
     }
   }
 
+  // 권역은 보여주기만 하는 칸이다. 사람이 못 고친다(정책서 receiver_area
+  // 예외2 - "권역은 지역에서 자동 계산하고, 사람이 적는 칸에서 없앤다").
+  function renderRegionAuto(area) {
+    const el = document.getElementById('regionAuto');
+    const region = determineRegion(area);
+    if (!region) {
+      el.className = 'auto-box empty';
+      el.textContent = '도착 지역을 고르면 자동으로 정해집니다';
+    } else {
+      el.className = 'auto-box';
+      el.textContent = region + (region === '일반' ? '' : ` (${ETA_BUSINESS_DAYS[region]}영업일 소요)`);
+    }
+  }
+
   function step(no, title, body) {
     return `<div class="calc-step">
       <div class="calc-step-title">${no}. ${title}</div>
@@ -471,22 +518,23 @@
       return;
     }
 
-    if (!area) {
+    // 목록에 없는 지역이면 여기서 멈춘다. 요금을 찍지 않는다.
+    const region = determineRegion(area);
+    if (!region) {
       html += `<div class="calc-step pending-note">
         <div class="calc-step-title">5. 권역 판정 (규정 §2, §8-6)</div>
-        <div class="calc-step-body">도착 지역을 선택하면 권역・요금・도착예정일까지 이어서 계산됩니다.</div>
+        <div class="calc-step-body">도착 지역을 목록에서 고르면 권역・요금・도착예정일까지 이어서 계산됩니다.</div>
       </div>`;
       document.getElementById('calcSteps').innerHTML = html;
       renderRateTable(gt.matched, null);
       return;
     }
 
-    const region = determineRegion(area);
     const tier = RATE_TABLE.find(t => t.grade === gt.matched);
     const price = tier.price[region];
     const etaInfo = addBusinessDaysTrace(new Date(), ETA_BUSINESS_DAYS[region]);
-    const specialNote = (area === '진주' || area === '거제')
-      ? '다리・도로로 연결된 일반 지역입니다(규정 §2 "주의" 조항, 도서산간이 아닙니다). -> '
+    const specialNote = (area === '경남')
+      ? '거제・진주를 포함한 경남 전역은 다리・도로로 연결된 일반 지역입니다(규정 §2 "주의" 조항, 도서산간이 아닙니다). -> '
       : '';
 
     html += step('5', '권역 판정 (규정 §2, §8-6)',
@@ -564,6 +612,7 @@
     const height = getNumeric('heightCm');
     const depth = getNumeric('depthCm');
     const area = document.getElementById('receiverArea').value;
+    renderRegionAuto(area);
 
     // 계산 순서 1번(규정 §8-1) - 금지 품목이면 부피무게・등급・요금을
     // 계산하지 않고 여기서 멈춘다. "요금 계산 전에 거절합니다"를 계산
@@ -673,6 +722,22 @@
     document.getElementById('softConfirmBox').style.display = 'none';
     recalc();
   }
+
+  // 선택 목록은 AREA_LIST 정본에서 만든다. HTML에 지역 이름을 손으로 적지
+  // 않는다 - 표와 화면이 어긋날 자리를 아예 만들지 않기 위해서다.
+  (function buildAreaOptions() {
+    const sel = document.getElementById('receiverArea');
+    const first = document.createElement('option');
+    first.value = '';
+    first.textContent = '-- 목록에서 고르세요 --';
+    sel.appendChild(first);
+    AREA_LIST.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.area;
+      opt.textContent = a.region === '일반' ? a.area : `${a.area} (${a.region})`;
+      sel.appendChild(opt);
+    });
+  })();
 
   renderList();
   recalc();
