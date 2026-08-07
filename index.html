@@ -79,7 +79,6 @@
       <h2 class="step-q">무게와 크기를 재 주세요</h2>
       <p class="step-sub">저울에 올린 무게를 적으시면 어느 크기에 드는지 바로 보여 드립니다.</p>
       <div class="scale">
-        <div class="scale-plate">올려놓는 판</div>
         <div class="scale-body">
           <div class="scale-lcd">
             <div class="led"><i id="ledOn"></i><span>kg</span></div>
@@ -138,36 +137,46 @@
 
     <section class="step" data-step="5">
       <h2 class="step-q">누가 보내고, 누가 받나요?</h2>
+      <p class="step-sub">전화번호는 숫자만 누르시면 모양이 저절로 맞춰집니다.</p>
+
+      <div class="who" style="border:none;padding:0 0 6px">
+        <div class="who-tag from">보내는 분</div>
+        <div class="who-body" style="padding-top:2px">배송에 문제가 생기면 이 번호로 연락드립니다.</div>
+      </div>
       <div class="f">
-        <label for="senderName">보내는 분</label>
+        <label for="senderName">보내는 분 이름</label>
         <input type="text" id="senderName" placeholder="김민준" autocomplete="off">
         <div class="err" id="e_senderName"></div>
       </div>
       <div class="f">
         <label for="senderPhone">보내는 분 전화</label>
         <input type="tel" id="senderPhone" placeholder="01012345678" inputmode="numeric" autocomplete="off">
-        <p class="tip">숫자만 눌러 주세요. 배송에 문제가 생기면 이 번호로 연락드립니다.</p>
         <div class="err" id="e_senderPhone"></div>
       </div>
-      <div class="f">
-        <label for="senderDong">보내는 곳 주소 <span style="color:var(--muted);font-weight:600">(선택)</span></label>
-        <input type="text" id="senderDong" placeholder="예: 서울 용산구 청파동" autocomplete="off">
+
+      <div class="who" style="border:none;padding:18px 0 6px">
+        <div class="who-tag to">받는 분</div>
+        <div class="who-body" style="padding-top:2px">운송장에 이대로 찍힙니다.</div>
       </div>
       <div class="f">
-        <label for="receiverName">받는 분</label>
+        <label for="receiverName">받는 분 이름</label>
         <input type="text" id="receiverName" placeholder="이서연" autocomplete="off">
         <div class="err" id="e_receiverName"></div>
       </div>
       <div class="f">
-        <label>배송 요청사항</label>
-        <div class="opt-grid" id="noteGrid"></div>
-        <p class="tip">이름 칸에 적지 말고 여기서 골라 주세요. 검산에서 이름에 메모가 섞인 건이 100건 있었습니다.</p>
+        <label>받는 곳 주소</label>
+        <div class="auto-box" id="addrEcho">앞 단계에서 고르신 주소</div>
+        <p class="tip">고치시려면 위 진행 막대에서 <b>도착 지역</b>을 눌러 주세요.</p>
       </div>
       <div class="f">
         <label for="receiverPhone">받는 분 전화</label>
         <input type="tel" id="receiverPhone" placeholder="01012345678" inputmode="numeric" autocomplete="off">
-        <p class="tip">숫자만 눌러 주세요. 가운데 <b>-</b> 는 저절로 들어갑니다.</p>
         <div class="err" id="e_receiverPhone"></div>
+      </div>
+      <div class="f">
+        <label>배송 요청사항</label>
+        <div class="opt-grid" id="noteGrid"></div>
+        <p class="tip">이름 칸에 적지 말고 여기서 골라 주세요.</p>
       </div>
     </section>
 
@@ -204,7 +213,7 @@
 <script>
   const TOTAL = 7;
   const STEP_NAME = ['접수 지점', '도착 지역', '무게·크기', '물품 종류', '보내는·받는 분', '결제 방법', '확인'];
-  const TEXT_IDS = ['senderName', 'senderPhone', 'senderDong', 'receiverName', 'receiverPhone',
+  const TEXT_IDS = ['senderName', 'senderPhone', 'receiverName', 'receiverPhone',
                     'receiverDong', 'itemName', 'weightKg', 'widthCm', 'heightCm', 'depthCm'];
 
   const $ = id => document.getElementById(id);
@@ -477,6 +486,12 @@
     ['senderName', 'senderPhone', 'receiverName', 'receiverPhone', 'itemName', 'weightKg', 'dims']
       .forEach(k => { const el = $('e_' + k); if (el) el.textContent = errs[k] || ''; });
     $('nextBtn').disabled = Object.keys(errs).length > 0;
+    const echo = $('addrEcho');
+    if (echo) {
+      const a = D.area ? (D.area + ' ' + (val('receiverDong') || '')).trim() : '';
+      echo.textContent = a || '앞 단계에서 고르신 주소';
+      echo.className = a ? 'auto-box' : 'auto-box empty';
+    }
     paintScale(); paintPack();
     paintDots();
   }
@@ -534,7 +549,7 @@
       '<div class="who"><div class="who-tag from">보내는 분</div><div class="who-body">' +
         '<div class="who-name">' + show(val('senderName')) + '</div>' +
         '<div class="who-line">' + show(val('senderPhone')) + '</div>' +
-        '<div class="who-line">' + show(val('senderDong')) + ' · ' + D.branch + ' 접수</div></div></div>' +
+        '<div class="who-line">' + D.branch + ' 접수</div></div></div>' +
       '<div class="who"><div class="who-tag to">받는 분</div><div class="who-body">' +
         '<div class="who-name">' + show(val('receiverName')) + '</div>' +
         '<div class="who-line">' + show(val('receiverPhone')) + '</div>' +
@@ -589,7 +604,6 @@
         branchName: D.branch,
         senderName: val('senderName'),
         senderPhone: val('senderPhone'),
-        senderDong: val('senderDong'),
         payType: D.payType,
         deliveryNote: D.note || '없음',
         channel: '방문접수',
@@ -628,6 +642,16 @@
     Store.clearDraft();
     location.href = 'done.html';
   }
+
+  // 규정 창 - 지금 적은 내용에 해당하는 칸을 노랗게 짚어 준다.
+  // 260807 이 함수가 없어서 7단계 '전체 요금 규정 보기'가 안 열렸다.
+  function openRules() {
+    let d = {};
+    try { if (D.branch && D.area && val('weightKg') && val('widthCm')) d = draft(); } catch (e) {}
+    Rules.open({ branchName: D.branch, receiverArea: D.area,
+                 regionType: d.region, sizeGrade: d.grade });
+  }
+  window.openRules = openRules;
 
   $('prevBtn').onclick = () => go(step - 1);
   $('nextBtn').onclick = () => (step === TOTAL ? submit() : go(step + 1));
