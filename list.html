@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>두두택배 - 접수 목록</title>
+<!--
+  두두택배 - 접수 목록 화면
+  =================================================
+  네 화면 중 세 번째. 접수된 건을 표로 보여주기만 한다.
+  지금은 store.js 가 브라우저에서 읽어 오지만, 13:40에 Supabase로 갈아끼우면
+  이 화면은 한 글자도 안 고쳐도 된다 - Store.list() 만 부르기 때문이다.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="brand">두두택배 접수</div>
+    <div class="sub">접수 목록</div>
+  </div>
+  <nav class="nav">
+    <a href="index.html">접수하기</a>
+    <a href="list.html" class="on">접수 목록</a>
+    <a href="track.html">운송장 조회</a>
+  </nav>
+
+  <div class="panel">
+    <h2>오늘 접수 목록</h2>
+    <p class="count-line" id="countLine"></p>
+    <div class="list-section" style="margin-top:0">
+      <table>
+        <thead>
+          <tr>
+            <th>운송장</th><th>지점</th><th>보내는분</th><th>받는분</th><th>도착지역</th>
+            <th>권역</th><th>물품</th><th>요금무게</th><th>등급</th><th>요금</th><th>도착예정</th>
+          </tr>
+        </thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+    <div class="center-actions">
+      <a class="btn-main" href="index.html">새 접수</a>
+    </div>
+  </div>
+</div>
+
+<script src="calc.js"></script>
+<script src="store.js"></script>
+<script>
+  const rows = Store.list();
+  const body = document.getElementById('listBody');
+  const count = document.getElementById('countLine');
+
+  if (rows.length === 0) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="11">아직 접수 내역이 없습니다</td></tr>';
+    count.textContent = '0건';
+  } else {
+    // 최근 접수를 맨 위로 올린다 - 창구에서 방금 받은 건을 먼저 찾는다.
+    body.innerHTML = rows.slice().reverse().map(s => `
+      <tr>
+        <td>${s.trackingNo}</td><td>${s.branchName}</td><td>${s.senderName}</td><td>${s.receiverName}</td>
+        <td>${s.receiverArea}</td><td>${s.regionType}</td><td>${s.itemName}</td>
+        <td>${s.billedWeightKg}kg</td><td>${s.sizeGrade}</td><td>${formatWon(s.price)}</td><td>${s.etaDate}</td>
+      </tr>`).join('');
+    const total = rows.reduce((sum, s) => sum + (s.price || 0), 0);
+    count.textContent = `${rows.length}건 / 합계 ${formatWon(total)}`;
+  }
+</script>
+</body>
+</html>

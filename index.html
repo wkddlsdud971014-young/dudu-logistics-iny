@@ -3,28 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>두두택배 접수 - 한장완성판</title>
+<title>두두택배 - 접수하기</title>
 <!--
-  두두택배 접수 - F. 한장완성판
+  두두택배 - 접수하기 화면
   =================================================
-  이 변형의 존재 이유 - 단계 이동 없이 화면 하나로 접수규정 전체를 설명할 때
-  쓴다. A_최소판.html이 검증을 의도적으로 하나도 안 넣은 빈 캔버스라면,
-  이 파일은 그 반대 극단이다 - 규정(02_접수규정.md) 8절 계산 순서, 5절
-  금지품목 7분류, 3절 요금표 12종, 2절 권역 판정을 전부 넣고 결함을
-  남기지 않았다. 핵심 차별점 - 오른쪽 계산 패널이 입력 즉시(oninput) 부피
-  무게・요금 무게・세 변의 합・등급 판정 과정・권역・요금・도착예정일을
-  숫자를 그대로 대입한 계산식으로 펼쳐 보인다("왜 이 값이 나왔는가").
-  검증 - mcp Claude_Browser preview로 실제 접수 5건을 끝까지(접수완료 버튼
-  클릭 -> 운송장 발급 -> 목록 반영) 직접 입력해 통과시켰다. setup.sql 샘플
-  전건와 운송장번호까지 일치 - 이불(1100000001, 대형, 9000원, 서울/일반),
-  책(1200000001, 중형, 6000원, 서울/일반), 화장품(3100000001, 극소형,
-  3500원, 진주/일반 - 진주=일반 지역 규정 §2 실제 확인), 운동화(3200000001,
-  소형, 4000원, 거제/일반 - 거제=일반 지역 실제 확인), 쌀(4100000001,
-  중형, 6000원, 울산/일반, 세변합70cm+8kg 한 등급 상향 규정 §3 실제 확인).
-  금지품목 2건(라이터/인화성, 현금/금전 - 접수 차단 + 계산 §8-1에서 중단
-  확인) + 한도초과 1건(커튼 3.8kg 64x53x47 -> 세변합164cm/요금무게26.57kg,
-  verified_300.csv 실제 사례와 일치 - 접수 불가 확인)을 전부 직접 클릭해
-  확인했다. 콘솔 에러 0(read_console_messages 실측).
+  네 화면 중 첫 번째. 여기서는 "입력받아 계산해서 저장"까지만 한다.
+  영수증은 done.html, 목록은 list.html, 조회는 track.html 이 맡는다.
+  계산 정본은 calc.js, 디자인은 style.css, 저장은 store.js 에 있다.
 -->
 <link rel="stylesheet" href="style.css">
 </head>
@@ -32,8 +17,13 @@
 <div class="page">
   <div class="topbar">
     <div class="brand">두두택배 접수</div>
-    <div class="sub">한장완성판 - 규정 전 조항 반영 / 계산 과정 실시간 표시</div>
+    <div class="sub">규정 전 조항 반영 / 계산 과정 실시간 표시</div>
   </div>
+  <nav class="nav">
+    <a href="index.html" class="on">접수하기</a>
+    <a href="list.html">접수 목록</a>
+    <a href="track.html">운송장 조회</a>
+  </nav>
 
   <div class="layout">
     <section class="form-panel">
@@ -121,23 +111,10 @@
     </section>
   </div>
 
-  <div class="receipt-section" id="receiptSection" style="display:none"></div>
-
-  <div class="list-section">
-    <h2 style="font-size:14px;color:var(--muted);margin:0 0 8px 2px;">오늘 접수 목록 (이 브라우저 세션에서만 유지)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>운송장</th><th>지점</th><th>보내는분</th><th>받는분</th><th>도착지역</th>
-          <th>권역</th><th>물품</th><th>요금무게</th><th>등급</th><th>요금</th><th>도착예정</th>
-        </tr>
-      </thead>
-      <tbody id="listBody"><tr class="empty-row"><td colspan="11">아직 접수 내역이 없습니다</td></tr></tbody>
-    </table>
-  </div>
 </div>
 
 <script src="calc.js"></script>
+<script src="store.js"></script>
 <script>
   // 빈 값・숫자아님・0 이하는 전부 null(무효)로 처리한다. A_최소판/D 클론이
   // 갖고 있던 결함(빈 값이 조용히 0으로 취급되는 것)을 이 파일에서는
@@ -369,39 +346,8 @@
   }
 
   // ============================================================
-  // 접수 완료 - 운송장 발급 + 목록 반영 + 영수증 표시
+  // 접수 완료 - 저장하고 완료 화면으로 넘긴다
   // ============================================================
-  const savedShipments = [];
-  function renderList() {
-    const body = document.getElementById('listBody');
-    if (savedShipments.length === 0) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="11">아직 접수 내역이 없습니다</td></tr>';
-      return;
-    }
-    body.innerHTML = savedShipments.map(s => `
-      <tr>
-        <td>${s.trackingNo}</td><td>${s.branchName}</td><td>${s.senderName}</td><td>${s.receiverName}</td>
-        <td>${s.receiverArea}</td><td>${s.regionType}</td><td>${s.itemName}</td>
-        <td>${s.billedWeightKg}kg</td><td>${s.sizeGrade}</td><td>${formatWon(s.price)}</td><td>${s.etaDate}</td>
-      </tr>`).join('');
-  }
-
-  function showReceipt(record) {
-    const el = document.getElementById('receiptSection');
-    el.style.display = 'block';
-    el.innerHTML = `
-      <div class="receipt-card">
-        <div class="receipt-title">접수가 완료됐습니다</div>
-        <div class="receipt-tno">운송장번호 ${record.trackingNo}</div>
-        <div class="receipt-line">접수 지점 ${record.branchName} / 보내는 분 ${record.senderName}</div>
-        <div class="receipt-line">받는 분 ${record.receiverName} / 도착 지역 ${record.receiverArea}(${record.regionType})</div>
-        <div class="receipt-line">물품 ${record.itemName} / 요금 무게 ${record.billedWeightKg}kg / 등급 ${record.sizeGrade}</div>
-        <div class="receipt-price">${formatWon(record.price)}</div>
-        <div class="receipt-line">도착 예정일 ${record.etaDate}</div>
-      </div>`;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
   function submitShipment() {
     const errors = validateAll();
     if (errors.length > 0) { updateSubmitState(); return; }
@@ -425,7 +371,7 @@
     const tier = RATE_TABLE.find(t => t.grade === grade);
     const price = tier.price[region];
     const etaInfo = addBusinessDaysTrace(new Date(), ETA_BUSINESS_DAYS[region]);
-    const trackingNo = nextTrackingNo(branchCode);
+    const trackingNo = Store.nextTrackingNo(branchCode);
 
     const record = {
       trackingNo, branchName, senderName, receiverName,
@@ -436,21 +382,9 @@
       etaDate: formatDateISO(etaInfo.finalDate),
     };
 
-    // ---- Supabase 연동 자리 (키를 넣지 않는다) ----
-    // const { data, error } = await supabaseClient.from('shipments').insert([{
-    //   tracking_no: record.trackingNo, sender_name: record.senderName,
-    //   receiver_name: record.receiverName, receiver_area: record.receiverArea,
-    //   region_type: record.regionType, item_name: record.itemName,
-    //   weight_kg: record.weightKg, width_cm: record.widthCm,
-    //   height_cm: record.heightCm, depth_cm: record.depthCm,
-    //   billed_weight_kg: record.billedWeightKg, size_grade: record.sizeGrade,
-    //   price: record.price, eta_date: record.etaDate,
-    // }]);
-
-    savedShipments.push(record);
-    renderList();
-    showReceipt(record);
-    resetForm();
+    Store.save(record);
+    // 접수한 건은 done.html 이 보여준다. 이 화면은 다음 손님을 받는다.
+    location.href = 'done.html';
   }
 
   function resetForm() {
@@ -487,7 +421,6 @@
     fill('branch', BRANCHES.map(b => ({ value: b.name, label: `${b.name} (${b.code})` })));
   })();
 
-  renderList();
   recalc();
 </script>
 </body>

@@ -156,24 +156,8 @@
     return { hardHits, softHits: hardHits.length ? [] : hits.filter(h => h.ask) };
   }
 
-  // 운송장 번호 - 규정 §9(지점코드 2자리 + 접수순번 8자리, "절대 겹치면
-  // 안 됩니다"). 지점별 순번 카운터를 두고 이미 발급된 번호와 다시
-  // 겹치지 않는지도 확인한다. 서울지점 첫 건이면 1100000001이 나온다 -
-  // setup.sql 샘플1(이불) 운송장번호와 정확히 같은 값이라 검산 포인트로
-  // 쓸 수 있다.
-  const seqByBranch = {};
-  const issuedTrackingNos = new Set();
-  function nextTrackingNo(branchCode) {
-    let n = (seqByBranch[branchCode] || 0) + 1;
-    let no = branchCode + String(n).padStart(8, '0');
-    while (issuedTrackingNos.has(no)) {
-      n += 1;
-      no = branchCode + String(n).padStart(8, '0');
-    }
-    seqByBranch[branchCode] = n;
-    issuedTrackingNos.add(no);
-    return no;
-  }
+  // 운송장 번호 발급은 store.js 로 옮겼다 - 페이지가 나뉘면서
+  // 순번을 화면 밖(sessionStorage)에 둬야 이어지기 때문이다.
 
   function formatWon(n) {
     if (n === null || n === undefined || isNaN(n)) return '-';

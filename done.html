@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>두두택배 - 접수 완료</title>
+<!--
+  두두택배 - 접수 완료 화면
+  =================================================
+  네 화면 중 두 번째. 방금 접수한 한 건만 크게 보여준다.
+  운송장 번호를 직원이 옮겨 적어야 해서 제일 크게 뒀다.
+  여기서는 계산도 저장도 하지 않는다 - store.js 에서 읽어 그리기만 한다.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="brand">두두택배 접수</div>
+    <div class="sub">접수 완료</div>
+  </div>
+  <nav class="nav">
+    <a href="index.html">접수하기</a>
+    <a href="list.html">접수 목록</a>
+    <a href="track.html">운송장 조회</a>
+  </nav>
+
+  <div class="panel" id="panel"></div>
+</div>
+
+<script src="calc.js"></script>
+<script src="store.js"></script>
+<script>
+  const record = Store.last();
+  const panel = document.getElementById('panel');
+
+  if (!record) {
+    // 주소창으로 곧장 들어왔거나 세션이 비었을 때. 빈 영수증을 그리지 않는다.
+    panel.innerHTML = `
+      <div class="empty-state">아직 접수한 건이 없습니다.</div>
+      <div class="center-actions"><a class="btn-main" href="index.html">접수하러 가기</a></div>`;
+  } else {
+    panel.innerHTML = `
+      <div class="receipt-card">
+        <div class="receipt-title">접수가 완료됐습니다</div>
+        <div class="receipt-tno">${record.trackingNo}</div>
+        <div class="receipt-line">접수 지점 ${record.branchName} / 보내는 분 ${record.senderName}</div>
+        <div class="receipt-line">받는 분 ${record.receiverName} / 도착 지역 ${record.receiverArea}(${record.regionType})</div>
+        <div class="receipt-line">물품 ${record.itemName} / 요금 무게 ${record.billedWeightKg}kg / 등급 ${record.sizeGrade}</div>
+        <div class="receipt-price">${formatWon(record.price)}</div>
+        <div class="receipt-line">도착 예정일 ${record.etaDate}</div>
+      </div>
+      <div class="center-actions">
+        <a class="btn-main" href="index.html">새 접수</a>
+        <a class="btn-sub" href="list.html">접수 목록 보기</a>
+      </div>`;
+  }
+</script>
+</body>
+</html>
