@@ -645,3 +645,10 @@ details.info th { color: var(--muted); font-weight: 700; }
   .logo-mark { width: 28px; height: 28px; border-radius: 8px; }
   .logo-sub { font-size: 11px; padding-left: 7px; }
 }
+
+/* 260807 1단계 - 지금 계신 곳 안내 */
+.near { margin: 10px 0 14px; padding: 11px 13px; border-radius: 10px;
+        font-size: 14px; line-height: 1.65; }
+.near.ok   { background: #F1F8E9; border: 1px solid var(--accent); color: #33691E; }
+.near.warn { background: #FFF8E1; border: 1px solid #FFB300; color: #7A5300; }
+.near b    { font-weight: 800; }

@@ -327,6 +327,52 @@
       return (DONG[a.area] || '').split(' ').some(d => d && (d.includes(k) || d.includes(bare)));
     }).map(a => a.area);
   }
+  // ============================================================
+  // 260807 "지금 계신 곳" 으로 가까운 접수 지점 찾기
+  //
+  // 규정에는 지점이 여섯 곳이라는 것과 각 지점의 소재지·허브만 있고,
+  // "어느 시·도가 어느 지점 담당" 이라는 조항은 없다. 그래서 아래 묶음은
+  // 규정이 아니라 허브 세 곳을 기준으로 내가 묶은 안내용이다.
+  //   - 고르는 것은 끝까지 손님이 한다. 이 함수는 순서만 바꾸고 추천만 한다
+  //   - 요금은 바뀌지 않는다. 요금은 받는 곳으로만 정해진다 (규정 §2)
+  //   - 못 알아들으면 조용히 아무 지점이나 고르지 않고 null 을 돌려준다
+  // ============================================================
+  const HUB_OF = {
+    '서울': '수도권HUB', '인천': '수도권HUB', '경기': '수도권HUB', '강원': '수도권HUB',
+    '대전': '중부HUB', '세종': '중부HUB', '충북': '중부HUB', '충남': '중부HUB',
+    '전북': '중부HUB', '전남': '중부HUB', '광주': '중부HUB',
+    '부산': '영남HUB', '대구': '영남HUB', '울산': '영남HUB',
+    '경북': '영남HUB', '경남': '영남HUB',
+    // 제주와 섬에는 접수 지점이 없다. 일부러 비워 둔다.
+  };
+
+  // 돌려주는 것
+  //   { area, hub, list, best }  찾음 (list 는 가까운 순으로 늘어놓은 지점 이름)
+  //   { area, hub: null, ... }   시·도는 알아냈지만 그 근처에 지점이 없음 (제주·섬)
+  //   null                       무슨 말인지 못 알아들음 -> 화면이 멈추고 물어본다
+  function nearestBranches(q) {
+    const text = String(q || '').trim();
+    if (!text) return null;
+    const hits = searchAreas(text);
+    if (hits.length !== 1) return null;      // 한 곳으로 좁혀지지 않으면 추천하지 않는다
+    const area = hits[0];
+    const hub = HUB_OF[area] || null;
+    // 0점 = 지점이 바로 그 시·도에 있음 · 1점 = 같은 허브 · 2점 = 그 밖
+    const score = b => (b.at.indexOf(area) === 0 ? 0 : (hub && b.hub === hub ? 1 : 2));
+    const list = BRANCHES.map((b, i) => ({ b, i, s: score(b) }))
+      .sort((p, r) => p.s - r.s || p.i - r.i)
+      .map(x => x.b.name);
+    // 딱 한 곳을 집는 것은 그 시·도에 지점이 실제로 있을 때만 한다.
+    // 같은 허브 안에서 어디가 더 가까운지는 우리에게 거리 자료가 없다.
+    // (부산에서 진주와 울산 중 어디가 가까운지 규정에도 원장에도 없다)
+    // 모르는 것을 1등이라고 내세우지 않고, 허브 이름만 알려 주고 고르게 한다.
+    const same = list.filter(n => score(BRANCHES.find(b => b.name === n)) === 0);
+    const inHub = list.filter(n => score(BRANCHES.find(b => b.name === n)) === 1);
+    return { area, hub, list,
+             best: same.length === 1 ? same[0] : null,   // 한 곳으로 딱 떨어질 때만
+             sameArea: same, hubBranches: inHub };
+  }
+
   // 무게처럼 소수 한 자리로 보여 주는 것이 자연스러운 값. 3 → 3.0
   function toOneDecimal(raw) {
     const s = String(raw ?? '').trim();
