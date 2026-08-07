@@ -30,7 +30,11 @@ const TO_DB = {
   acceptedAt: 'accepted_at', status: 'status',
 };
 // 화면이 보내면 안 되는 칸 - 서버가 정한다 (화면_서버_대조표 2·18번)
-const SERVER_ONLY = ['accepted_at', 'status'];
+// 손님이 보내도 서버가 아예 안 받는 칸.
+// 260807 검수에서 tracking_no 와 is_test 가 빠져 있는 것이 나왔다.
+//   tracking_no - 넣어 보내면 서버 발급을 건너뛴다. "번호는 서버가 뽑는다" 가 거짓이 된다
+//   is_test     - 진짜 접수를 '연습' 으로 표시할 수 있다. 정리할 때 같이 지워진다
+const SERVER_ONLY = ['accepted_at', 'status', 'tracking_no', 'is_test'];
 const TO_APP = Object.fromEntries(Object.entries(TO_DB).map(([a, b]) => [b, a]));
 
 function toDb(row) {
@@ -106,16 +110,15 @@ module.exports = async (req, res) => {
       // 정책서에 적어 둔 "창구 두 곳이 서로를 모른다" 와 같은 자리다.
       // 표를 보고 뽑을 수 있는 것은 표 옆에 있는 이 서버뿐이다.
       const code = String(raw.branchCode || '').trim();
-      if (!row.tracking_no) {
-        if (!/^\d{2}$/.test(code)) {
-          return res.status(400).json({ error: '접수 지점 코드가 없습니다' });
-        }
-        row.tracking_no = await nextNo(code);
+      if (!/^\d{2}$/.test(code)) {
+        return res.status(400).json({ error: '접수 지점 코드가 없습니다' });
       }
+      row.tracking_no = await nextNo(code);
       if (!row.tracking_no) return res.status(400).json({ error: '운송장 번호를 만들지 못했습니다' });
-      // 안 적어 보내면 진짜 접수로 본다. 빈 값(NULL)으로 두지 않는다 -
-      // 빈 값은 true 도 false 도 아니라서 나중에 걸러지지 않는다.
-      if (row.is_test === undefined || row.is_test === null) row.is_test = false;
+      // 이 문으로 들어온 것은 전부 진짜 접수다. 손님이 '연습' 이라고 우겨도 안 받는다.
+      // 연습 건은 슈파베이스 SQL 로만 넣고 표시한다.
+      row.is_test = false;
+
 
       const r = await sb('shipments', {
         method: 'POST',
