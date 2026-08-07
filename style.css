@@ -695,3 +695,12 @@ details.info th { color: var(--muted); font-weight: 700; }
 /* 260807 시·도 찾기 - 주소칸과 구별되게 작게 */
 .search-box.mini { margin: 0 0 10px; }
 .search-box.mini input { font-size: 13.5px; padding-top: 11px; padding-bottom: 11px; }
+
+/* 260807 못 찾을 때만 쓰는 검색 상자.
+   위에 두었더니 "무조건 써야 하는 것" 처럼 보였다. 버튼 아래로 내리고 낮췄다. */
+.findbox { margin-top: 14px; padding: 12px 13px; border: 1px dashed var(--border);
+           border-radius: 12px; background: #FAFAFA; }
+.findbox .fb-t { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+.findbox .search-box.mini { margin: 0; }
+.findbox .near { margin: 10px 0 0; }
+.findbox .search-none { margin-top: 10px; }

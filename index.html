@@ -46,14 +46,16 @@
     <section class="step" data-step="1">
       <h2 class="step-q">어디에서 접수하시나요?</h2>
       <p class="step-sub">운송장 번호는 <b>기계가 자동으로 뽑습니다.</b> 손님이 적지 않으셔도 됩니다.<br>고르신 지점이 그 번호의 앞 두 자리가 됩니다.</p>
-      <div class="f">
-        <label for="nearQ">지금 계신 곳 <span style="color:var(--muted);font-weight:600">(선택)</span></label>
-        <input type="text" id="nearQ" placeholder="예: 창원, 둔산동, 서울시 중랑구" autocomplete="off">
-        <p class="tip">적으시면 가까운 지점을 앞으로 옮겨 드립니다. <b>고르시는 것은 그대로 직접 고르시면 됩니다.</b></p>
-      </div>
-      <div id="nearMsg"></div>
       <div class="opt-grid" id="branchGrid"></div>
       <div id="branchPicked"></div>
+      <div class="findbox">
+        <div class="fb-t">어느 지점으로 가야 할지 모르시겠나요?</div>
+        <div class="search-box mini">
+          <span class="ico">🔍</span>
+          <input type="text" id="nearQ" placeholder="지금 계신 곳 (예: 창원, 둔산동, 서울시 중랑구)" autocomplete="off">
+        </div>
+        <div id="nearMsg"></div>
+      </div>
       <details class="info">
         <summary>지점 안내 보기</summary>
         <div class="info-body">
@@ -77,16 +79,19 @@
       <p class="step-sub"><b>먼저 시·도를 고르시고</b>, 그 아래에 자세한 주소를 적어 주세요.</p>
 
       <div class="opt-label">시·도 <span class="auto-tag">요금이 여기서 정해집니다</span></div>
-      <div class="search-box mini">
-        <span class="ico">🔍</span>
-        <input type="text" id="areaQ" autocomplete="off"
-               placeholder="안 보이면 여기에 지역 이름을 쳐 보세요 (예: 거제, 둔산동)">
-      </div>
       <div class="opt-grid" id="areaGrid"></div>
       <div class="opt-label" id="islandLabel">섬 지역 (도서산간)</div>
       <div class="opt-grid" id="islandGrid"></div>
-      <div class="search-none" id="areaNone" style="display:none"></div>
       <div id="areaPicked"></div>
+      <div class="findbox">
+        <div class="fb-t">어느 시·도인지 모르시겠나요?</div>
+        <div class="search-box mini">
+          <span class="ico">🔍</span>
+          <input type="text" id="areaQ" autocomplete="off"
+                 placeholder="지역 이름을 쳐 보세요 (예: 거제, 둔산동, 해운대)">
+        </div>
+        <div class="search-none" id="areaNone" style="display:none"></div>
+      </div>
 
       <div class="f" style="margin-top:16px">
         <label for="receiverDong">받는 곳 자세한 주소</label>
