@@ -84,9 +84,9 @@ module.exports = async (req, res) => {
     if (req.method === 'POST') {
       const row = toDb(typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {});
       if (!row.tracking_no) return res.status(400).json({ error: '운송장 번호가 없습니다' });
-      // 연습인지 아닌지 안 적어 보내면 '연습'으로 본다. 빈 값으로 두면
-      // 나중에 지울 때 true 도 false 도 아니라서 걸러지지 않는다.
-      if (row.is_test === undefined || row.is_test === null) row.is_test = true;
+      // 안 적어 보내면 진짜 접수로 본다. 빈 값(NULL)으로 두지 않는다 -
+      // 빈 값은 true 도 false 도 아니라서 나중에 걸러지지 않는다.
+      if (row.is_test === undefined || row.is_test === null) row.is_test = false;
 
       const r = await sb('shipments', {
         method: 'POST',

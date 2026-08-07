@@ -14,9 +14,10 @@ const Store = {
   DRAFT: 'dudu.draft',
   LAST: 'dudu.last',
 
-  // 오늘 넣는 것은 전부 연습이다. 표시해 두고 끝나면 골라 지운다
-  // (setup.sql 맨 아래 "delete from shipments where is_test = true").
-  IS_TEST: true,
+  // 260807 오후 - 연습 건을 다 지우고 여기서부터는 진짜 접수로 본다.
+  // 연습이 아니라고 적어 두어야 나중에 지우는 명령에 휩쓸리지 않는다.
+  // (지우는 명령: delete from shipments where is_test is distinct from false)
+  IS_TEST: false,
 
   // 지금 어디에 담기고 있는지. 화면이 손님에게 알려 줄 때 쓴다.
   where: '확인 중',
