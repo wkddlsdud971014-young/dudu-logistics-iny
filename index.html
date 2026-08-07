@@ -142,8 +142,8 @@
       <div class="field-grid">
         <div class="field">
           <label for="branch">접수 지점 <span class="req">필수</span></label>
-          <input type="text" id="branch" oninput="recalc()" placeholder="서울지점" autocomplete="off">
-          <p class="hint">등록된 지점: 서울지점, 용산지점, 대전지점, 진주지점, 거제지점, 울산지점. 목록에 없는 이름을 적으면 운송장 앞자리가 00으로 나갑니다.</p>
+          <select id="branch" onchange="recalc()"></select>
+          <p class="hint">6개 지점 중에서만 고릅니다. 운송장 앞 2자리가 지점 코드라(규정 §9), 등록 안 된 이름이 들어가면 번호가 <code>00</code>으로 나갑니다.</p>
         </div>
         <div class="field">
           <label for="receiverArea">도착 지역 <span class="req">필수</span></label>
@@ -197,7 +197,7 @@
 
       <div class="soft-confirm" id="softConfirmBox" style="display:none">
         <div id="softConfirmText"></div>
-        <label><input type="checkbox" id="staffConfirm" onchange="recalc()"> 직원이 확인했습니다 (50만원 이하)</label>
+        <label><input type="checkbox" id="staffConfirm" onchange="recalc()"> 위 항목을 직원이 확인했습니다</label>
       </div>
 
       <div class="error-box" id="errorBox"></div>
@@ -285,10 +285,12 @@
   ];
   const AREA_REGION = new Map(AREA_LIST.map(a => [a.area, a.region]));
 
-  // 260807 지점이 텍스트 입력이라 이름에서 코드를 찾는다. 목록에 없으면 00.
+  // 등록 안 된 지점이면 null을 돌려준다. 고치기 전에는 '00'을 내보내서
+  // 0000000001 같은 운송장이 발급됐다 - 규정 §9는 앞 2자리가 접수 지점
+  // 코드여야 한다고 못 박고 있으므로 '00'은 유효한 번호가 아니다.
   function branchCodeOf(name) {
     const hit = BRANCHES.find(b => b.name === name);
-    return hit ? hit.code : '00';
+    return hit ? hit.code : null;
   }
   // 모르는 지역은 '일반'으로 떨어뜨리지 않고 null을 돌려준다. 고치기 전에는
   // 목록에 없는 값이 전부 조용히 일반 요금으로 나갔다 - '제주도' 3,500원,
@@ -343,38 +345,51 @@
   // 확인 불가로 답하고 사람에게 넘깁니다"를 어기게 되므로, 시계는 자동
   // 통과가 아니라 직원 확인 체크박스를 요구하는 소프트 차단으로 나머지
   // 하드 차단 목록과 분리했다.
+  // 260807 오차단을 고쳤다. 전에는 22개 낱말을 전부 하드 차단해서
+  // '냉장고'가 "냉장"에, '동물인형'이 "동물"에, '은박지'가 "은"에 걸려
+  // 접수가 막혔다. 규정 §5 원문은 "냉장・냉동이 필요한 식품", "살아있는
+  // 동물", "살아있는 식물"이라 가전・인형・조화는 접수 가능한 물건이다.
+  // 그래서 두 갈래로 나눴다 -
+  //   하드: 낱말 자체가 금지 품목을 특정하는 것 (계산 전에 거절)
+  //   소프트: 규정에 조건이 붙어 있거나, 낱말만으로는 금지품인지 알 수
+  //           없는 것. §5 마지막 줄 "애매하면 확인 불가로 답하고 사람에게
+  //           넘깁니다"에 따라 자동 통과도 자동 차단도 하지 않고 직원
+  //           확인을 받는다.
   const BANNED_RULES = [
+    // --- 하드 차단 ---
     { category: '금전',   keyword: '현금' },
     { category: '금전',   keyword: '상품권' },
     { category: '금전',   keyword: '유가증권' },
-    { category: '귀중품', keyword: '금' },
-    { category: '귀중품', keyword: '은' },
     { category: '귀중품', keyword: '보석' },
-    { category: '귀중품', keyword: '시계', condition: '50만원 초과 시' },
     { category: '인화성', keyword: '라이터' },
     { category: '인화성', keyword: '부탄가스' },
     { category: '인화성', keyword: '페인트' },
     { category: '인화성', keyword: '신나' },
-    { category: '인화성', keyword: '알코올' },
+    { category: '인화성', keyword: '알코올 스프레이' },
     { category: '배터리', keyword: '보조배터리' },
     { category: '배터리', keyword: '리튬배터리' },
-    { category: '생물',   keyword: '동물' },
-    { category: '생물',   keyword: '식물' },
-    { category: '온도',   keyword: '냉장' },
-    { category: '온도',   keyword: '냉동' },
     { category: '기타',   keyword: '주류' },
     { category: '기타',   keyword: '의약품' },
     { category: '기타',   keyword: '총포' },
     { category: '기타',   keyword: '도검' },
+    // --- 소프트 확인 (직원이 보고 판단) ---
+    { category: '귀중품', keyword: '시계',   ask: '50만원을 넘지 않는지' },
+    { category: '귀중품', keyword: '금',     ask: '귀금속 금이 아닌지 (예: 황금향・금붕어는 접수 가능)' },
+    { category: '귀중품', keyword: '은',     ask: '귀금속 은이 아닌지 (예: 은박지・은행은 접수 가능)' },
+    { category: '인화성', keyword: '알코올', ask: '스프레이 형태가 아닌지' },
+    { category: '생물',   keyword: '동물',   ask: '살아있는 동물이 아닌지 (예: 동물인형은 접수 가능)' },
+    { category: '생물',   keyword: '식물',   ask: '살아있는 식물이 아닌지 (예: 조화는 접수 가능)' },
+    { category: '온도',   keyword: '냉장',   ask: '냉장이 필요한 식품이 아닌지 (예: 냉장고는 접수 가능)' },
+    { category: '온도',   keyword: '냉동',   ask: '냉동이 필요한 식품이 아닌지' },
   ];
   function checkBanned(name) {
     const s = (name || '').trim();
     if (!s) return { hardHits: [], softHits: [] };
     const hits = BANNED_RULES.filter(r => s.includes(r.keyword));
-    return {
-      hardHits: hits.filter(h => !h.condition),
-      softHits: hits.filter(h => h.condition),
-    };
+    const hardHits = hits.filter(h => !h.ask);
+    // 하드에 걸렸으면 소프트 확인은 의미가 없다 ('현금'은 '금'도 물고
+    // 들어오고, '알코올 스프레이'는 '알코올'도 문다).
+    return { hardHits, softHits: hardHits.length ? [] : hits.filter(h => h.ask) };
   }
 
   // 운송장 번호 - 규정 §9(지점코드 2자리 + 접수순번 8자리, "절대 겹치면
@@ -422,11 +437,12 @@
       el.innerHTML = `<span class="badge bad">접수 불가 품목입니다 - ${h.category} "${h.keyword}"(규정 §5). 요금 계산 전에 거절합니다.</span>`;
       box.style.display = 'none';
     } else if (ban.softHits.length > 0) {
-      const h = ban.softHits[0];
-      el.innerHTML = `<span class="badge warn">"${h.keyword}"는 ${h.condition} 금지 품목입니다(규정 §5). 가격을 확인할 수 없어 직원 확인이 필요합니다.</span>`;
+      const list = ban.softHits.map(h => `"${h.keyword}"(${h.category})`).join(', ');
+      el.innerHTML = `<span class="badge warn">직원 확인이 필요한 낱말이 있습니다 - ${list}. 자동으로 막지도, 그냥 통과시키지도 않습니다(규정 §5 "애매하면 확인 불가로 답하고 사람에게 넘깁니다").</span>`;
       box.style.display = 'block';
-      document.getElementById('softConfirmText').textContent =
-        `"${h.keyword}" - ${h.condition} 금지 품목(규정 §5 귀중품). 50만원 이하임을 확인했으면 아래에 체크하세요.`;
+      document.getElementById('softConfirmText').innerHTML =
+        '아래를 직원이 눈으로 확인한 뒤 체크하세요 (규정 §5).<br>' +
+        ban.softHits.map(h => `・<b>${h.keyword}</b> — ${h.ask}`).join('<br>');
     } else {
       el.innerHTML = '';
       box.style.display = 'none';
@@ -568,6 +584,7 @@
     const depth = getNumeric('depthCm');
 
     if (!branch) errors.push('접수 지점을 선택하세요.');
+    else if (!branchCodeOf(branch)) errors.push(`등록되지 않은 지점입니다 - 운송장 앞 2자리(지점 코드, 규정 §9)를 만들 수 없어 발급을 막습니다.`);
     if (!senderName) errors.push('보내는 분 이름을 입력하세요.');
     if (!receiverName) errors.push('받는 분 이름을 입력하세요.');
     if (!area) errors.push('도착 지역을 선택하세요.');
@@ -581,8 +598,7 @@
       errors.push(`접수 불가 품목입니다 - ${h.category} "${h.keyword}"(규정 §5). 요금 계산 전에 거절합니다.`);
     }
     if (ban.softHits.length > 0 && !document.getElementById('staffConfirm').checked) {
-      const h = ban.softHits[0];
-      errors.push(`"${h.keyword}"는 ${h.condition} 금지 품목입니다(규정 §5). 직원 확인 체크가 필요합니다.`);
+      errors.push(`직원 확인이 필요한 낱말이 있습니다(${ban.softHits.map(h => h.keyword).join(', ')}) - 확인 체크가 필요합니다(규정 §5).`);
     }
 
     if (weight !== null && width !== null && height !== null && depth !== null) {
@@ -725,18 +741,26 @@
 
   // 선택 목록은 AREA_LIST 정본에서 만든다. HTML에 지역 이름을 손으로 적지
   // 않는다 - 표와 화면이 어긋날 자리를 아예 만들지 않기 위해서다.
-  (function buildAreaOptions() {
-    const sel = document.getElementById('receiverArea');
-    const first = document.createElement('option');
-    first.value = '';
-    first.textContent = '-- 목록에서 고르세요 --';
-    sel.appendChild(first);
-    AREA_LIST.forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a.area;
-      opt.textContent = a.region === '일반' ? a.area : `${a.area} (${a.region})`;
-      sel.appendChild(opt);
-    });
+  (function buildSelects() {
+    function fill(id, rows) {
+      const sel = document.getElementById(id);
+      const first = document.createElement('option');
+      first.value = '';
+      first.textContent = '-- 목록에서 고르세요 --';
+      sel.appendChild(first);
+      rows.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.value;
+        opt.textContent = r.label;
+        sel.appendChild(opt);
+      });
+    }
+    fill('receiverArea', AREA_LIST.map(a => ({
+      value: a.area,
+      label: a.region === '일반' ? a.area : `${a.area} (${a.region})`,
+    })));
+    // 지점 코드를 같이 보여준다 - 운송장 앞 2자리가 이 코드다(규정 §9).
+    fill('branch', BRANCHES.map(b => ({ value: b.name, label: `${b.name} (${b.code})` })));
   })();
 
   renderList();
