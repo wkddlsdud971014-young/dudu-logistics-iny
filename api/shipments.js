@@ -22,12 +22,19 @@ const TO_DB = {
   sizeGrade: 'size_grade', price: 'price', etaDate: 'eta_date',
   payType: 'pay_type', deliveryNote: 'delivery_note', channel: 'channel',
   isTest: 'is_test',
+  // 아래 둘은 서버가 채운다. 화면이 보내지 않는다.
+  acceptedAt: 'accepted_at', status: 'status',
 };
+// 화면이 보내면 안 되는 칸 - 서버가 정한다 (화면_서버_대조표 2·18번)
+const SERVER_ONLY = ['accepted_at', 'status'];
 const TO_APP = Object.fromEntries(Object.entries(TO_DB).map(([a, b]) => [b, a]));
 
 function toDb(row) {
   const out = {};
-  for (const k in row) if (TO_DB[k] && row[k] !== undefined) out[TO_DB[k]] = row[k];
+  for (const k in row) {
+    const col = TO_DB[k];
+    if (col && row[k] !== undefined && !SERVER_ONLY.includes(col)) out[col] = row[k];
+  }
   return out;
 }
 function toApp(row) {
