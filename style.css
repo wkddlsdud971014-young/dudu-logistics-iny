@@ -658,3 +658,26 @@ details.info th { color: var(--muted); font-weight: 700; }
             color: var(--muted); line-height: 1.35; letter-spacing: -.2px; }
 .cat.on .ceg { color: #33691E; }
 .why-small { font-size: 12.5px; opacity: .85; }
+
+/* 260807 완료 화면 - 결제는 카운터에서. 이 화면은 돈을 받지 않는다 */
+.paynow { border-radius: 14px; padding: 16px 18px; margin: 0 0 16px;
+          text-align: center; border: 2px solid; }
+.paynow.need  { background: #FFF8E1; border-color: #FFB300; color: #6D4C00; }
+.paynow.later { background: #F1F8E9; border-color: var(--accent); color: #33691E; }
+.paynow .pn-t   { font-size: 15px; font-weight: 800; letter-spacing: -.3px; }
+.paynow .pn-won { font-size: 34px; font-weight: 900; margin: 4px 0 6px; letter-spacing: -1px; }
+.paynow .pn-s   { font-size: 13px; font-weight: 600; line-height: 1.6; }
+
+/* 운송장 도장 - 붙여 놓고 멀리서도 보이게 */
+.wb-pay { position: relative; }
+.wb-stamp { position: absolute; right: 8px; top: 50%; transform: translateY(-50%) rotate(-7deg);
+            border: 2.5px solid; border-radius: 7px; padding: 4px 9px;
+            font-size: 13px; font-weight: 900; line-height: 1.15; text-align: center;
+            letter-spacing: -.4px; }
+.wb-stamp span { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: 0; }
+.wb-stamp.need  { color: #C62828; border-color: #C62828; }
+.wb-stamp.later { color: #1B5E20; border-color: #1B5E20; }
+@media print {
+  .paynow { display: none !important; }   /* 스티커에는 안 나오게 */
+  .wb-stamp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

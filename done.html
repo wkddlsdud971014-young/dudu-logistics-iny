@@ -66,7 +66,25 @@
     const no = String(record.trackingNo || '');
     const days = ETA_BUSINESS_DAYS[record.regionType];
 
+    const prepaid = record.payType === '선불';
+    const payBox = prepaid
+      ? '<div class="paynow need">' +
+          '<div class="pn-t">카운터에서 결제해 주세요</div>' +
+          '<div class="pn-won">' + formatWon(record.price) + '</div>' +
+          '<div class="pn-s">' +
+            (record.payMethod ? '<b>' + record.payMethod + '</b>으로 내신다고 하셨습니다. ' : '') +
+            '<b>이 화면에서는 돈을 받지 않았습니다.</b><br>' +
+            '운송장을 뽑으신 뒤 카운터에 내시면 됩니다.' +
+          '</div>' +
+        '</div>'
+      : '<div class="paynow later">' +
+          '<div class="pn-t">지금 내실 것은 없습니다</div>' +
+          '<div class="pn-won">' + formatWon(record.price) + '</div>' +
+          '<div class="pn-s"><b>받는 분이 물건을 받을 때</b> 내는 착불입니다.</div>' +
+        '</div>';
+
     panel.innerHTML =
+      payBox +
       '<div class="waybill">' +
         '<div class="wb-top">' +
           '<div class="wb-logo">두두택배</div>' +
@@ -118,7 +136,10 @@
 
         '<div class="wb-pay"><div class="pk">' + show(record.payType, ' 요금') +
           (record.payMethod ? '<br><span style="font-size:10.5px;font-weight:600">' + record.payMethod + '</span>' : '') + '</div>' +
-          '<div class="pv">' + formatWon(record.price) + '</div></div>' +
+          '<div class="pv">' + formatWon(record.price) + '</div>' +
+          '<div class="wb-stamp ' + (prepaid ? 'need' : 'later') + '">' +
+            (prepaid ? '결제 필요<span>카운터</span>' : '착불<span>받는 분</span>') +
+          '</div></div>' +
         '<div class="wb-foot">' +
           (record.payType === '착불' ? '<b>받는 분이 물건 받을 때 내는 요금입니다</b><br>' : '') +
           (days ? '접수한 ' + Rules.dayWords(days) + ' 도착 예정입니다 (토·일요일은 빼고 셉니다)' : '') +

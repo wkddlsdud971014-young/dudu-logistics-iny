@@ -210,7 +210,8 @@
 
     <section class="step" data-step="6">
       <h2 class="step-q">요금은 어떻게 내시나요?</h2>
-      <p class="step-sub">금액은 같습니다. 누가 내는지만 달라집니다.</p>
+      <p class="step-sub">금액은 같습니다. <b>누가 내는지</b>만 달라집니다.<br>
+      선불로 하시면 접수를 마친 뒤 <b>카운터에서 결제</b>하시면 됩니다. 여기서는 받지 않습니다.</p>
       <div class="pay-grid" id="payGrid"></div>
       <div id="payPicked"></div>
 
@@ -482,13 +483,17 @@
     keep(); sync();
   }
 
+  function pickMethod(v) {
+    D.payMethod = v;
+    paintPicked(['methodGrid'], v);
+    $('methodPicked').innerHTML =
+      '<div class="picked-line">' + v + '<span class="sub">' +
+      '접수를 마친 뒤 <b>카운터에서 ' + v + '으로 결제</b>해 주세요. 여기서는 받지 않습니다.' +
+      '</span></div>';
+    keep(); sync();
+  }
   PAY_METHODS.forEach(m => $('methodGrid').appendChild(
-    optButton(m.name, m.icon + ' ' + m.name, null, v => {
-      D.payMethod = v;
-      paintPicked(['methodGrid'], v);
-      $('methodPicked').innerHTML = '<div class="picked-line">' + v + '로 받습니다</div>';
-      keep(); sync();
-    })));
+    optButton(m.name, m.icon + ' ' + m.name, null, pickMethod)));
 
   // 5단계 · 배송 요청사항 ---------------------------------------
   // 정책서 receiver_name 항목 - 이름 칸에 '(직접수령)' 같은 메모가 섞인 건이
@@ -640,8 +645,8 @@
     document.querySelectorAll('.step').forEach(s =>
       s.classList.toggle('on', Number(s.dataset.step) === step));
     $('prevBtn').style.display = step === 1 ? 'none' : '';   // 자리를 비워 두지 않는다
-    $('nextBtn').textContent = step < TOTAL ? '다음'
-      : (D.payType === '선불' ? formatWon(safePrice()) + ' 받고 접수 완료' : '착불로 접수 완료');
+    // 이 화면은 돈을 받지 않는다. 접수만 하고 결제는 카운터에서 한다.
+    $('nextBtn').textContent = step < TOTAL ? '다음' : '접수 완료';
     // 확인 화면 그리다 실패해도 화면이 통째로 멈추지 않게 한다
     if (step === TOTAL) { try { renderConfirm(); } catch (e) { go(step - 1); return; } }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -789,6 +794,10 @@
 
   // ── 시작 ────────────────────────────────────────────────
   restore();
+  // 260807 처음부터 '선불' 인 척하면서 버튼은 안 눌린 것처럼 보였다.
+  // 그래서 아무도 누르지 않고 지나갔고, 결제 수단 칸은 숨은 채로 넘어갔다.
+  pickPay(D.payType || '선불');
+  if (D.payMethod) pickMethod(D.payMethod);
   if (D.branch) pickBranch(D.branch);
   if (D.area) pickArea(D.area);
   go(step);
