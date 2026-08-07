@@ -48,6 +48,8 @@ alter table shipments add column if not exists volume_weight_kg numeric;
 alter table shipments add column if not exists pay_type         text;
 alter table shipments add column if not exists delivery_note    text;
 alter table shipments add column if not exists channel          text;
+alter table shipments add column if not exists pay_method       text;
+alter table shipments add column if not exists postal_code      text;
 alter table shipments add column if not exists is_test          boolean;
 
 -- ─────────────────────────────────────────────────────────────

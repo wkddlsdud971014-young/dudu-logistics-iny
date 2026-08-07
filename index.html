@@ -68,15 +68,27 @@
 
     <section class="step" data-step="2">
       <h2 class="step-q">어디로 보내시나요?</h2>
-      <p class="step-sub">주소를 적으시면 아래에서 지역이 걸러집니다. 권역과 요금은 저절로 정해집니다.</p>
-      <div class="f" style="margin-bottom:14px">
+      <p class="step-sub">주소는 받는 분께 갈 그대로 적어 주세요. 아래에서 시·도를 고르시면 요금이 정해집니다.</p>
+
+      <div class="f">
+        <label for="postalCode">우편번호 <span style="color:var(--muted);font-weight:600">(선택)</span></label>
+        <input type="tel" id="postalCode" placeholder="12345" inputmode="numeric" maxlength="5" autocomplete="off">
+        <p class="tip">아시면 적어 주세요. 몰라도 접수됩니다.</p>
+      </div>
+
+      <div class="f">
         <label for="receiverDong">받는 곳 주소</label>
         <div class="search-box" style="margin-bottom:0">
           <span class="ico">🔍</span>
-          <input type="text" id="receiverDong" placeholder="예: 제주 노형동 / 서울 중랑구 / 추자도" autocomplete="off">
+          <input type="text" id="receiverDong" autocomplete="off"
+                 placeholder="예: 경남 거제시 아주동 123-45 두두아파트 101동 202호">
         </div>
-        <p class="tip">동·구 이름으로도 찾아집니다. 여기 적으신 그대로 운송장에 찍힙니다.</p>
+        <p class="tip">동·번지·건물까지 적어 주세요. <b>운송장에 이대로 찍힙니다.</b>
+        적으시는 대로 아래 시·도가 걸러집니다.</p>
+        <div class="err" id="e_receiverDong"></div>
       </div>
+
+      <div class="opt-label">시·도 <span class="auto-tag">요금이 여기서 정해집니다</span></div>
       <div class="opt-grid" id="areaGrid"></div>
       <div class="opt-label" id="islandLabel">섬 지역 (도서산간)</div>
       <div class="opt-grid" id="islandGrid"></div>
@@ -195,6 +207,12 @@
       <p class="step-sub">금액은 같습니다. 누가 내는지만 달라집니다.</p>
       <div class="pay-grid" id="payGrid"></div>
       <div id="payPicked"></div>
+
+      <div id="methodWrap" style="display:none">
+        <div class="opt-label">무엇으로 내시나요?</div>
+        <div class="opt-grid" id="methodGrid"></div>
+        <div id="methodPicked"></div>
+      </div>
     </section>
 
     <section class="step" data-step="7">
@@ -224,14 +242,16 @@
   const TOTAL = 7;
   const STEP_NAME = ['접수 지점', '도착 지역', '무게·크기', '물품 종류', '보내는·받는 분', '결제 방법', '확인'];
   const TEXT_IDS = ['senderName', 'senderPhone', 'receiverName', 'receiverPhone',
-                    'receiverDong', 'itemName', 'weightKg', 'widthCm', 'heightCm', 'depthCm'];
+                    'postalCode', 'receiverDong', 'itemName',
+                    'weightKg', 'widthCm', 'heightCm', 'depthCm'];
 
   const $ = id => document.getElementById(id);
   const val = id => $(id).value.trim();
 
   // 쓰다 만 내용을 담아 둔다. 뒤로 가도, 위 메뉴로 나갔다 와도 남는다.
   let D = Object.assign({ branch: '', area: '', category: '', payType: '선불',
-                          note: '없음', staffConfirm: false, agreeDamage: false, step: 1, seen: 1 },
+                          payMethod: '', note: '없음',
+                          staffConfirm: false, agreeDamage: false, step: 1, seen: 1 },
                         Store.getDraft());
   let step = Math.min(TOTAL, Math.max(1, Number(D.step) || 1));
 
@@ -312,14 +332,21 @@
       b.style.display = on ? '' : 'none';
       if (on) shown++;
     }));
-    const anyIsland = hit.some(a => determineRegion(a) === '도서산간');
-    $('islandLabel').style.display = anyIsland ? '' : 'none';
-    $('areaNone').style.display = shown ? 'none' : 'block';
+    // 못 찾았다고 버튼을 감추지 않는다. 우리가 아는 지명은 시·군·구까지라
+    // '아주동' 처럼 더 작은 동네는 못 알아본다. 주소는 적으신 그대로
+    // 저장되니, 시·도만 손으로 골라 주시면 된다.
     if (!shown) {
-      $('areaNone').innerHTML = '<b>' + q + ' 은(는) 찾지 못했습니다.</b><br>' +
-        '시·도 이름으로 찾아보세요. 시·군·구를 넣으셔도 됩니다 —<br>' +
-        '<b>화성</b> → 경기 · <b>서귀포</b> → 제주 · <b>포항</b> → 경북<br>' +
-        '섬으로 보내시면 섬 이름을 그대로 넣어 주세요 (<b>추자</b>, <b>울릉</b>).';
+      ['areaGrid', 'islandGrid'].forEach(gid =>
+        $(gid).querySelectorAll('.opt').forEach(b => { b.style.display = ''; }));
+      $('islandLabel').style.display = '';
+      $('areaNone').style.display = 'block';
+      $('areaNone').innerHTML =
+        '<b>주소는 그대로 저장됩니다.</b><br>' +
+        '작은 동네 이름까지는 못 알아봅니다. <b>아래에서 시·도만 골라 주세요.</b>';
+    } else {
+      const anyIsland = hit.some(a => determineRegion(a) === '도서산간');
+      $('islandLabel').style.display = anyIsland ? '' : 'none';
+      $('areaNone').style.display = 'none';
     }
   });
 
@@ -386,8 +413,19 @@
       (v === '착불' ? '운송장에 착불로 찍힙니다. 받는 분이 물건 받을 때 냅니다.'
                     : '지금 받습니다. 운송장에 선불로 찍힙니다.') +
       ' 금액은 같습니다.</span></div>';
+    // 선불이면 지금 받아야 하니 무엇으로 낼지도 고른다
+    $('methodWrap').style.display = (v === '선불') ? 'block' : 'none';
+    if (v === '착불') { D.payMethod = ''; $('methodPicked').innerHTML = ''; }
     keep(); sync();
   }
+
+  PAY_METHODS.forEach(m => $('methodGrid').appendChild(
+    optButton(m.name, m.icon + ' ' + m.name, null, v => {
+      D.payMethod = v;
+      paintPicked(['methodGrid'], v);
+      $('methodPicked').innerHTML = '<div class="picked-line">' + v + '로 받습니다</div>';
+      keep(); sync();
+    })));
 
   // 5단계 · 배송 요청사항 ---------------------------------------
   // 정책서 receiver_name 항목 - 이름 칸에 '(직접수령)' 같은 메모가 섞인 건이
@@ -402,6 +440,10 @@
     })));
 
   // 5·확인 단계 입력 ---------------------------------------------
+  $('postalCode').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
+    keep();
+  });
   ['receiverPhone', 'senderPhone'].forEach(id => $(id).addEventListener('input', e => {
     e.target.value = formatPhone(e.target.value);
     keep(); sync();
@@ -419,7 +461,10 @@
   function checkStep(n) {
     const errs = {};
     if (n === 1 && !branchCodeOf(D.branch)) errs._ = '접수 지점을 골라 주세요.';
-    if (n === 2 && !determineRegion(D.area)) errs._ = '도착 지역을 골라 주세요.';
+    if (n === 2) {
+      if (!val('receiverDong')) errs.receiverDong = '받는 곳 주소를 적어 주세요.';
+      if (!determineRegion(D.area)) errs._ = '시·도를 골라 주세요.';
+    }
     if (n === 3) {
       const w = checkNumber('weightKg', val('weightKg'));
       if (w.err) errs.weightKg = w.err;
@@ -453,7 +498,10 @@
       else if (!isValidPhone(sp)) errs.senderPhone = '자릿수가 맞지 않습니다 (지금 ' + phoneDigits(sp).length + '자리).';
     }
     if (n === 5 && !D.note) errs._ = '배송 요청사항을 골라 주세요.';
-    if (n === 6 && !D.payType) errs._ = '결제 방법을 골라 주세요.';
+    if (n === 6) {
+      if (!D.payType) errs._ = '결제 방법을 골라 주세요.';
+      else if (D.payType === '선불' && !D.payMethod) errs._ = '무엇으로 내실지 골라 주세요.';
+    }
     if (n === 4) {
       if (!val('itemName')) errs.itemName = '물품명을 입력해 주세요.';
       const ban = checkBanned(val('itemName'));
@@ -493,7 +541,8 @@
       }
     }
     const errs = checkStep(step);
-    ['senderName', 'senderPhone', 'receiverName', 'receiverPhone', 'itemName', 'weightKg', 'dims']
+    ['senderName', 'senderPhone', 'receiverName', 'receiverPhone', 'receiverDong',
+     'itemName', 'weightKg', 'dims']
       .forEach(k => { const el = $('e_' + k); if (el) el.textContent = errs[k] || ''; });
     $('nextBtn').disabled = Object.keys(errs).length > 0;
     const echo = $('addrEcho');
@@ -528,7 +577,8 @@
     document.querySelectorAll('.step').forEach(s =>
       s.classList.toggle('on', Number(s.dataset.step) === step));
     $('prevBtn').style.display = step === 1 ? 'none' : '';   // 자리를 비워 두지 않는다
-    $('nextBtn').textContent = step === TOTAL ? '접수 완료' : '다음';
+    $('nextBtn').textContent = step < TOTAL ? '다음'
+      : (D.payType === '선불' ? formatWon(safePrice()) + ' 받고 접수 완료' : '착불로 접수 완료');
     if (step === TOTAL) renderConfirm();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     keep(); sync();
@@ -568,7 +618,9 @@
 
     const rows = [
       ['배송 요청사항', show(D.note)],
-      ['결제 방법', D.payType + (D.payType === '착불' ? ' (받는 분이 냅니다)' : '')],
+      ['결제 방법', D.payType === '선불'
+        ? '선불 · ' + show(D.payMethod) + ' (지금 받습니다)'
+        : '착불 (받는 분이 물건 받을 때 냅니다)'],
       ['물품 종류', show(D.category)],
       ['물품', show(val('itemName'))],
       ['실제 무게', show(toOneDecimal(d.w), 'kg')],
@@ -615,6 +667,8 @@
         senderName: val('senderName'),
         senderPhone: val('senderPhone'),
         payType: D.payType,
+      payMethod: D.payMethod || '',
+      postalCode: val('postalCode'),
         deliveryNote: D.note || '없음',
         channel: '방문접수',
         receiverName: val('receiverName'),

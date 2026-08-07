@@ -16,7 +16,8 @@ const TO_APP = {
   weight_kg: 'weightKg', width_cm: 'widthCm', height_cm: 'heightCm', depth_cm: 'depthCm',
   volume_weight_kg: 'volumeWeightKg', billed_weight_kg: 'billedWeightKg',
   size_grade: 'sizeGrade', eta_date: 'etaDate',
-  pay_type: 'payType', delivery_note: 'deliveryNote', is_test: 'isTest',
+  pay_type: 'payType', pay_method: 'payMethod', postal_code: 'postalCode',
+  delivery_note: 'deliveryNote', is_test: 'isTest',
 };
 function toApp(row) {
   const out = {};

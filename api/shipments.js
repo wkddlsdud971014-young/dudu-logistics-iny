@@ -23,7 +23,8 @@ const TO_DB = {
   weightKg: 'weight_kg', widthCm: 'width_cm', heightCm: 'height_cm', depthCm: 'depth_cm',
   volumeWeightKg: 'volume_weight_kg', billedWeightKg: 'billed_weight_kg',
   sizeGrade: 'size_grade', price: 'price', etaDate: 'eta_date',
-  payType: 'pay_type', deliveryNote: 'delivery_note', channel: 'channel',
+  payType: 'pay_type', payMethod: 'pay_method', postalCode: 'postal_code',
+  deliveryNote: 'delivery_note', channel: 'channel',
   isTest: 'is_test',
   // 아래 둘은 서버가 채운다. 화면이 보내지 않는다.
   acceptedAt: 'accepted_at', status: 'status',
