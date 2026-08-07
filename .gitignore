@@ -4,3 +4,6 @@
 .env.local
 node_modules/
 .vercel
+
+# 선생님 피드백 - 개인 파일이라 올리지 않는다
+장인영.md
