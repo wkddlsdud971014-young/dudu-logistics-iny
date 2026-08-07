@@ -250,9 +250,19 @@ details.why .why-body { padding: 0 14px 12px; }
 .search-none b { color: var(--text); }
 
 /* ── 접기·펴기 안내 (지점 정보 등) ─────────────────────── */
-details.info { margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
-details.info summary { padding: 13px 14px; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--brand); }
-details.info .info-body { padding: 0 14px 14px; font-size: 13px; line-height: 1.9; color: var(--muted); }
+/* 260807 접었다 펴는 칸이 너무 커서 '꼭 읽어야 하는 것' 처럼 보였다.
+   필요한 사람만 누르는 자리라 눈에 덜 띄게 낮춘다. 펴면 그때 상자가 생긴다. */
+details.info { margin-top: 8px; border: 0; background: none; }
+details.info summary { display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 2px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  color: var(--muted); list-style: none; }
+details.info summary::-webkit-details-marker { display: none; }
+details.info summary::before { content: '＋'; font-size: 11px; font-weight: 800; opacity: .7; }
+details.info[open] summary::before { content: '－'; }
+details.info summary:hover { color: var(--brand); text-decoration: underline; }
+details.info[open] summary { color: var(--brand); font-weight: 700; margin-bottom: 4px; }
+details.info .info-body { padding: 12px 14px; font-size: 13px; line-height: 1.9;
+  color: var(--muted); border: 1px solid var(--border); border-radius: 10px; background: #fff; }
 details.info table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 details.info th, details.info td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: left; }
 details.info th { color: var(--muted); font-weight: 700; }
