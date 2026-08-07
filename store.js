@@ -1,45 +1,113 @@
 // 두두택배 - 저장·조회 창구
-// 네 화면(접수·완료·목록·조회)이 데이터를 주고받는 유일한 통로다.
+// 네 화면(접수·운송장·목록·조회)이 데이터를 주고받는 유일한 통로다.
+// 화면 코드 어디에도 sessionStorage 나 supabase 라는 낱말이 나오지 않는다.
 //
-// 지금은 브라우저(sessionStorage)에 담는다. 13:40에 Supabase로 갈아끼울 때
-// **이 파일만** 고치면 되도록, 화면 코드는 Store.* 만 부르게 했다.
-// 화면 코드 어디에도 sessionStorage 라는 낱말이 나오지 않는다.
+// 260807 서버(Supabase)로 갈아끼웠다.
+//   1순위: api/shipments.js 를 거쳐 표에 넣고 읽는다
+//   2순위: 서버가 없거나 답이 없으면 이 브라우저 안에만 담는다
+// 2순위를 남겨 둔 이유 - 열쇠를 넣기 전에도 화면이 돌아야 하고, 창구에서
+// 인터넷이 끊겼을 때 접수 자체가 막히면 안 되기 때문이다.
 
 const Store = {
   KEY: 'dudu.shipments',
   SEQ: 'dudu.seq',
+  DRAFT: 'dudu.draft',
+  LAST: 'dudu.last',
 
-  list() {
+  // 오늘 넣는 것은 전부 연습이다. 표시해 두고 끝나면 골라 지운다
+  // (setup.sql 맨 아래 "delete from shipments where is_test = true").
+  IS_TEST: true,
+
+  // 지금 어디에 담기고 있는지. 화면이 손님에게 알려 줄 때 쓴다.
+  where: '확인 중',
+
+  // ── 브라우저 임시 보관 (서버가 안 될 때만) ──────────────
+  _local() {
     try { return JSON.parse(sessionStorage.getItem(this.KEY)) || []; }
     catch (e) { return []; }
   },
-
-  save(record) {
-    const rows = this.list();
+  _pushLocal(record) {
+    const rows = this._local();
     rows.push(record);
     sessionStorage.setItem(this.KEY, JSON.stringify(rows));
-    sessionStorage.setItem('dudu.last', record.trackingNo);
-    return record;
   },
 
-  // 방금 접수한 건. done.html이 이걸로 영수증을 그린다.
+  // ── 접수 저장 ───────────────────────────────────────────
+  // 성공하면 { ok:true, row, where } 를 돌려준다.
+  // 운송장 번호가 겹치면 { ok:false, duplicate:true } 다 - 다른 창구가
+  // 같은 번호를 먼저 가져간 것이라, 화면이 번호를 다시 뽑아 재시도한다.
+  async save(record) {
+    const body = Object.assign({}, record, { isTest: this.IS_TEST });
+    try {
+      const r = await fetch('/api/shipments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json().catch(() => ({}));
+
+      if (r.status === 409 || data.reason === 'duplicate_tracking_no') {
+        return { ok: false, duplicate: true, error: data.error || '이미 있는 운송장 번호입니다' };
+      }
+      if (r.ok && data.row) {
+        this.where = '서버';
+        sessionStorage.setItem(this.LAST, JSON.stringify(data.row));
+        return { ok: true, row: data.row, where: '서버' };
+      }
+      throw new Error(data.error || ('서버가 ' + r.status + ' 로 답했습니다'));
+    } catch (e) {
+      // 서버가 없거나 끊겼다. 접수를 막지 않고 이 브라우저에 담아 둔다.
+      this.where = '이 브라우저';
+      this._pushLocal(body);
+      sessionStorage.setItem(this.LAST, JSON.stringify(body));
+      return { ok: true, row: body, where: '이 브라우저', offline: true,
+               error: String(e && e.message) };
+    }
+  },
+
+  // ── 목록 ────────────────────────────────────────────────
+  async list() {
+    try {
+      const r = await fetch('/api/shipments');
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && Array.isArray(data.rows)) {
+        this.where = '서버';
+        return { rows: data.rows, where: '서버' };
+      }
+      throw new Error(data.error || ('서버가 ' + r.status + ' 로 답했습니다'));
+    } catch (e) {
+      this.where = '이 브라우저';
+      return { rows: this._local().slice().reverse(), where: '이 브라우저',
+               offline: true, error: String(e && e.message) };
+    }
+  },
+
+  // ── 운송장 번호로 한 건 찾기 ────────────────────────────
+  async find(trackingNo) {
+    const no = String(trackingNo || '').replace(/\D/g, '');
+    try {
+      const r = await fetch('/api/track?no=' + encodeURIComponent(no));
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.row) return { row: data.row, where: '서버' };
+      if (r.status === 404) return { row: null, where: '서버' };
+      throw new Error(data.error || ('서버가 ' + r.status + ' 로 답했습니다'));
+    } catch (e) {
+      const hit = this._local().find(x => String(x.trackingNo) === no) || null;
+      return { row: hit, where: '이 브라우저', offline: true };
+    }
+  },
+
+  // ── 방금 접수한 건 (운송장 화면이 쓴다) ─────────────────
   last() {
-    const no = sessionStorage.getItem('dudu.last');
-    return this.list().find(r => r.trackingNo === no) || null;
-  },
-
-  find(trackingNo) {
-    return this.list().find(r => r.trackingNo === trackingNo) || null;
+    try { return JSON.parse(sessionStorage.getItem(this.LAST)) || null; }
+    catch (e) { return null; }
   },
 
   clear() {
-    [this.KEY, this.SEQ, 'dudu.last', this.DRAFT].forEach(k => sessionStorage.removeItem(k));
+    [this.KEY, this.SEQ, this.LAST, this.DRAFT].forEach(k => sessionStorage.removeItem(k));
   },
 
   // ── 쓰다 만 접수서 ──────────────────────────────────────
-  // 위쪽 메뉴로 목록을 보러 갔다 돌아와도, 이전 단계로 되돌아가도 적던
-  // 내용이 그대로 남아 있어야 한다. 손님이 두 번 적게 하지 않는다.
-  DRAFT: 'dudu.draft',
   getDraft() {
     try { return JSON.parse(sessionStorage.getItem(this.DRAFT)) || {}; }
     catch (e) { return {}; }
@@ -47,18 +115,15 @@ const Store = {
   setDraft(obj) { sessionStorage.setItem(this.DRAFT, JSON.stringify(obj || {})); },
   clearDraft() { sessionStorage.removeItem(this.DRAFT); },
 
-  // 운송장 번호 - 규정 §9 (지점코드 2자리 + 접수순번 8자리).
-  // 순번을 sessionStorage에 둔다. 페이지가 나뉘면서 calc.js가 화면마다 다시
-  // 읽히는데, 메모리 변수에 두면 접수할 때마다 1100000001로 되감긴다.
-  //
-  // ⚠️ 이건 임시 자리다. 창구 두 곳에서 동시에 접수하면 여기서는 여전히
-  // 겹친다 - 각 브라우저가 서로를 모르기 때문이다. 진짜로 막는 것은 DB의
-  // unique 제약뿐이다 (화면_서버_대조표.md 1번 "서버에서만 막을 수 있는 것").
+  // ── 운송장 번호 ─────────────────────────────────────────
+  // 규정 9 (지점코드 2자리 + 접수순번 8자리).
+  // 여기서 뽑은 번호가 겹칠 수 있다. 창구끼리 서로를 모르기 때문이다.
+  // 진짜로 막는 것은 표의 unique 이고, 겹치면 save() 가 알려 준다.
   nextTrackingNo(branchCode) {
     let seq = {};
     try { seq = JSON.parse(sessionStorage.getItem(this.SEQ)) || {}; }
     catch (e) { seq = {}; }
-    const issued = new Set(this.list().map(r => r.trackingNo));
+    const issued = new Set(this._local().map(r => r.trackingNo));
     let n = (seq[branchCode] || 0) + 1;
     let no = branchCode + String(n).padStart(8, '0');
     while (issued.has(no)) {
@@ -68,5 +133,15 @@ const Store = {
     seq[branchCode] = n;
     sessionStorage.setItem(this.SEQ, JSON.stringify(seq));
     return no;
+  },
+
+  // 표가 번호가 겹친다고 돌려보냈을 때 다음 번호를 뽑는다
+  bumpTrackingNo(branchCode) {
+    let seq = {};
+    try { seq = JSON.parse(sessionStorage.getItem(this.SEQ)) || {}; }
+    catch (e) { seq = {}; }
+    seq[branchCode] = (seq[branchCode] || 0) + 1;
+    sessionStorage.setItem(this.SEQ, JSON.stringify(seq));
+    return this.nextTrackingNo(branchCode);
   },
 };

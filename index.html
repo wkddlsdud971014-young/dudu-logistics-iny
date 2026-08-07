@@ -576,42 +576,57 @@
   }
 
   // ── 접수 ────────────────────────────────────────────────
-  function submit() {
+  async function submit() {
+    const btn = $('nextBtn');
+    btn.disabled = true;
+    btn.textContent = '접수 중...';
     const d = draft();
-    Store.save({
-      trackingNo: Store.nextTrackingNo(branchCodeOf(D.branch)),
-      branchName: D.branch,
-      senderName: val('senderName'),
-      senderPhone: val('senderPhone'),
-      senderDong: val('senderDong'),
-      payType: D.payType,
-      deliveryNote: D.note || '없음',
-      // 접수 경로는 손님이 고르지 않는다. 이 화면이 창구용이라 화면이 스스로 적는다
-      // (정책서 channel 항목 - "접수한 기기가 자동으로 기록한다").
-      channel: '방문접수',
-      receiverName: val('receiverName'),
-      receiverPhone: val('receiverPhone'),
-      receiverArea: D.area,
-      receiverDong: val('receiverDong'),
-      regionType: d.region,
-      category: D.category,
-      itemName: val('itemName'),
-      weightKg: d.w, widthCm: d.x, heightCm: d.y, depthCm: d.z,
-      volumeWeightKg: Math.round(d.vol * 100) / 100,
-      billedWeightKg: Math.round(d.billed * 10) / 10,
-      sizeGrade: d.grade,
-      price: d.price,
-      etaDate: formatDateISO(d.eta.finalDate),
-    });
-    Store.clearDraft();          // 접수했으니 쓰다 만 내용은 비운다
-    location.href = 'done.html';
-  }
+    const code = branchCodeOf(D.branch);
 
-  // 규정 창 - 지금 적은 내용에 해당하는 칸을 노랗게 짚어 준다
-  function openRules() {
-    const d = (D.branch && D.area && val('weightKg') && val('widthCm')) ? draft() : {};
-    Rules.open({ branchName: D.branch, receiverArea: D.area,
-                 regionType: d.region, sizeGrade: d.grade });
+    function build(no) {
+      return {
+        trackingNo: no,
+        branchName: D.branch,
+        senderName: val('senderName'),
+        senderPhone: val('senderPhone'),
+        senderDong: val('senderDong'),
+        payType: D.payType,
+        deliveryNote: D.note || '없음',
+        channel: '방문접수',
+        receiverName: val('receiverName'),
+        receiverPhone: val('receiverPhone'),
+        receiverArea: D.area,
+        receiverDong: val('receiverDong'),
+        regionType: d.region,
+        category: D.category,
+        itemName: val('itemName'),
+        weightKg: d.w, widthCm: d.x, heightCm: d.y, depthCm: d.z,
+        volumeWeightKg: Math.round(d.vol * 100) / 100,
+        billedWeightKg: Math.round(d.billed * 10) / 10,
+        sizeGrade: d.grade,
+        price: d.price,
+        etaDate: formatDateISO(d.eta.finalDate),
+      };
+    }
+
+    // 표가 "그 번호는 이미 있다" 고 돌려보내면 다음 번호로 다시 넣는다.
+    // 창구 두 곳이 같은 순간에 접수했을 때 생기는 일이고, 화면으로는
+    // 못 막는 자리다 (화면_서버_대조표 1번).
+    let res, no = Store.nextTrackingNo(code);
+    for (let i = 0; i < 5; i++) {
+      res = await Store.save(build(no));
+      if (!res.duplicate) break;
+      no = Store.bumpTrackingNo(code);
+    }
+
+    if (!res || res.duplicate) {
+      btn.disabled = false;
+      btn.textContent = '접수 완료';
+      alert('운송장 번호를 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요.');
+      return;
+    }
+    Store.clearDraft();
+    location.href = 'done.html';
   }
 
   $('prevBtn').onclick = () => go(step - 1);

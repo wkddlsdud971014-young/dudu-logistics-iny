@@ -50,7 +50,9 @@
 <script src="store.js"></script>
 <script src="rules.js"></script>
 <script>
-  const rows = Store.list();
+  (async () => {
+  const got = await Store.list();
+  const rows = got.rows;
   const body = document.getElementById('listBody');
   const count = document.getElementById('countLine');
 
@@ -73,6 +75,10 @@
     count.textContent = `${rows.length}건 / 합계 ${formatWon(total)}`
       + (noPrice ? ` (요금 없는 건 ${noPrice}건은 합계에서 뺐습니다)` : '');
   }
+  count.textContent += got.offline
+    ? ' · ⚠️ 서버에 못 닿아 이 브라우저 것만 보입니다'
+    : ' · 서버에서 읽었습니다';
+  })();
 </script>
 </body>
 </html>

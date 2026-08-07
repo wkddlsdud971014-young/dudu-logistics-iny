@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>두두택배 - 운송장 조회</title>
 <!--
-  두두택배 - 운송장 조회 화면 (자리만 잡아 둔 상태)
+  두두택배 - 운송장 조회
   =================================================
-  네 화면 중 네 번째. 지금은 아직 안 만들었다.
-  브라우저 안에만 자료가 있는 동안은 조회가 쓸모가 없어서다 - 새로고침하면
-  비고, 다른 사람이 접수한 건은 보이지도 않는다.
-  Supabase를 붙인 뒤에 만든다 (화면_서버_대조표.md 참고).
+  번호 10자리로 표에서 한 건을 찾아 보여 준다.
+  이 화면은 표(Supabase)를 붙인 뒤에야 쓸모가 있다. 브라우저 안에만
+  자료가 있을 때는 다른 창구에서 접수한 건을 못 찾기 때문이다.
+  값이 비어 있어도 '-' 로 찍고 멈추지 않는다.
 -->
 <link rel="stylesheet" href="style.css">
 </head>
@@ -27,20 +27,80 @@
   </nav>
 
   <div class="panel">
-    <div class="empty-state">
-      <b>아직 만들지 않은 화면입니다.</b><br><br>
-      운송장 조회는 데이터베이스를 붙인 뒤에 만듭니다.<br>
-      지금은 접수 내역이 브라우저 안에만 있어서, 새로고침하면 사라지고<br>
-      다른 창구에서 접수한 건은 찾을 수도 없기 때문입니다.
+    <h2 class="step-q" style="font-size:19px">운송장 번호를 넣어 주세요</h2>
+    <p class="step-sub">숫자 10자리입니다. 앞 두 자리는 접수한 지점 번호입니다.</p>
+    <div class="f">
+      <div class="search-box" style="margin-bottom:0">
+        <span class="ico">🔍</span>
+        <input type="tel" id="q" placeholder="1100000001" inputmode="numeric" maxlength="13" autocomplete="off">
+      </div>
+      <div class="err" id="qerr"></div>
     </div>
+    <button type="button" class="rules-open" id="go" style="margin-top:4px">조회하기</button>
+    <div id="out" style="margin-top:18px"></div>
     <div class="center-actions">
       <a class="btn-main" href="index.html">접수하기</a>
-      <a class="btn-sub" href="list.html">접수 목록</a>
+      <button type="button" class="btn-sub" onclick="Rules.open()">요금 규정 보기</button>
     </div>
   </div>
 </div>
+
 <script src="calc.js"></script>
 <script src="store.js"></script>
 <script src="rules.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const row = (k, v) => '<div class="rrow"><span class="rk">' + k + '</span><span class="rv">' + v + '</span></div>';
+
+  // 숫자만 남기고 보기 좋게 끊어 준다
+  $('q').addEventListener('input', e => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 10);
+    e.target.value = d.length > 2 ? d.slice(0, 2) + ' ' + d.slice(2) : d;
+    $('qerr').textContent = '';
+  });
+  $('q').addEventListener('keydown', e => { if (e.key === 'Enter') find(); });
+  $('go').onclick = find;
+
+  async function find() {
+    const no = $('q').value.replace(/\D/g, '');
+    $('out').innerHTML = '';
+    if (no.length !== 10) {
+      $('qerr').textContent = '숫자 10자리를 넣어 주세요 (지금 ' + no.length + '자리).';
+      return;
+    }
+    $('qerr').textContent = '';
+    $('go').textContent = '찾는 중...';
+    const got = await Store.find(no);
+    $('go').textContent = '조회하기';
+
+    if (!got.row) {
+      $('out').innerHTML = '<div class="search-none"><b>' + no.slice(0, 2) + ' ' + no.slice(2) +
+        ' 로 접수된 건이 없습니다.</b><br>번호를 다시 확인해 주세요.' +
+        (got.offline ? '<br><br>⚠️ 지금 서버에 못 닿아 이 브라우저 것만 찾았습니다.' : '') +
+        '</div>';
+      return;
+    }
+    const r = got.row;
+    const days = ETA_BUSINESS_DAYS[r.regionType];
+    $('out').innerHTML =
+      '<div class="receipt"><div class="receipt-top">' +
+        '<div class="receipt-ok">' + show(r.status || '집화처리') + '</div>' +
+        '<div class="receipt-no-label">운송장 번호</div>' +
+        '<div class="receipt-no">' + no.slice(0, 2) + ' ' + no.slice(2) + '</div>' +
+        '<div class="receipt-no-hint">' + show(r.branchName) + ' 접수</div>' +
+      '</div><div class="receipt-rows">' +
+        row('보내는 분', show(r.senderName)) +
+        row('받는 분', show(r.receiverName)) +
+        row('받는 곳', show(r.receiverArea) + ' ' + show(r.receiverDong)) +
+        row('물품', show(r.itemName) + ' · ' + show(r.category)) +
+        row('요금 무게', show(r.billedWeightKg, 'kg') + ' · ' + show(r.sizeGrade)) +
+        row('요금', formatWon(r.price) + ' ' + show(r.payType)) +
+        row('도착 예정', show(r.etaDate) + (days ? ' (' + Rules.dayWords(days) + ')' : '')) +
+      '</div></div>' +
+      '<button type="button" class="rules-open" onclick=\'Rules.open(' +
+        JSON.stringify(r).replace(/'/g, "&#39;") + ')\'>이 요금이 어떻게 나왔는지 규정에서 확인하기</button>' +
+      (got.offline ? '<p class="tip" style="text-align:center">⚠️ 서버에 못 닿아 이 브라우저 것을 보여드렸습니다</p>' : '');
+  }
+</script>
 </body>
 </html>
