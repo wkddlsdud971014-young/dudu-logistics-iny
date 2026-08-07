@@ -704,3 +704,15 @@ details.info th { color: var(--muted); font-weight: 700; }
 .findbox .search-box.mini { margin: 0; }
 .findbox .near { margin: 10px 0 0; }
 .findbox .search-none { margin-top: 10px; }
+
+/* 260807 보내는 쪽 / 받는 쪽 색 딱지.
+   같은 뜻인데 '접수 지점'·'도착 지역'·'보내는 분'·'받는 분' 네 말을 쓰고 있었다.
+   말은 '보내는 쪽 / 받는 쪽' 둘로 줄이고, 색으로 어느 쪽인지 보이게 한다.
+   운송장 스티커의 보내는곳·받는곳 색과 같은 색이라 화면과 스티커가 이어진다. */
+.side { display: inline-flex; gap: 6px; margin-bottom: 9px; }
+.side.from, .side.to, .side span {
+  display: inline-block; padding: 4px 11px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 800; letter-spacing: -.2px; }
+.side.from, .side span.from { background: var(--brand); color: #fff; }
+.side.to,   .side span.to   { background: var(--cu-green, #4CAF50); color: #fff; }
+.side.both { gap: 5px; }

@@ -44,6 +44,7 @@
     <div class="steptabs" id="dots"></div>
 
     <section class="step" data-step="1">
+      <div class="side from">보내는 쪽</div>
       <h2 class="step-q">어디에서 접수하시나요?</h2>
       <p class="step-sub">운송장 번호는 <b>기계가 자동으로 뽑습니다.</b> 손님이 적지 않으셔도 됩니다.<br>고르신 지점이 그 번호의 앞 두 자리가 됩니다.</p>
       <div class="opt-grid" id="branchGrid"></div>
@@ -75,6 +76,7 @@
     </section>
 
     <section class="step" data-step="2">
+      <div class="side to">받는 쪽</div>
       <h2 class="step-q">어디로 보내시나요?</h2>
       <p class="step-sub"><b>먼저 시·도를 고르시고</b>, 그 아래에 자세한 주소를 적어 주세요.</p>
 
@@ -164,6 +166,7 @@
     </section>
 
     <section class="step" data-step="5">
+      <div class="side both"><span class="from">보내는 쪽</span><span class="to">받는 쪽</span></div>
       <h2 class="step-q">누가 보내고, 누가 받나요?</h2>
       <p class="step-sub">전화번호는 숫자만 누르시면 모양이 저절로 맞춰집니다.</p>
 
@@ -194,7 +197,7 @@
       <div class="f">
         <label>받는 곳 주소</label>
         <div class="auto-box" id="addrEcho">앞 단계에서 고르신 주소</div>
-        <p class="tip">고치시려면 위 진행 막대에서 <b>도착 지역</b>을 눌러 주세요.</p>
+        <p class="tip">고치시려면 위 진행 막대에서 <b>받는 곳</b>을 눌러 주세요.</p>
       </div>
       <div class="f">
         <label for="receiverPhone">받는 분 전화</label>
@@ -249,7 +252,7 @@
 <script src="rules.js"></script>
 <script>
   const TOTAL = 7;
-  const STEP_NAME = ['접수 지점', '도착 지역', '무게·크기', '물품 종류', '보내는·받는 분', '결제 방법', '확인'];
+  const STEP_NAME = ['보내는 곳', '받는 곳', '무게·크기', '물품 종류', '보내는·받는 분', '결제 방법', '확인'];
   const TEXT_IDS = ['senderName', 'senderPhone', 'receiverName', 'receiverPhone',
                     'receiverDong', 'itemName',
                     'weightKg', 'widthCm', 'heightCm', 'depthCm'];
