@@ -253,9 +253,14 @@
                           payMethod: '', note: '없음',
                           staffConfirm: false, agreeDamage: false, step: 1, seen: 1 },
                         Store.getDraft());
-  // 새로고침하면 확인 화면(7)으로 바로 돌아가지 않는다.
-  // 적은 내용은 그대로 두고, 마지막 입력 단계(6)까지만 되살린다.
-  let step = Math.min(TOTAL - 1, Math.max(1, Number(D.step) || 1));
+  // 새로고침은 '처음부터 다시'라는 뜻이다. 1단계로 돌아간다.
+  // 위 메뉴(규정·조회)에 갔다 돌아온 것은 새로고침이 아니므로 있던 단계 그대로 둔다.
+  // 어느 쪽이든 적어 둔 내용은 지우지 않는다.
+  const navType = ((performance.getEntriesByType &&
+                    performance.getEntriesByType('navigation')[0]) || {}).type;
+  let step = navType === 'reload'
+    ? 1
+    : Math.min(TOTAL, Math.max(1, Number(D.step) || 1));
 
   function keep() {
     D.step = step;
