@@ -614,3 +614,34 @@ details.info th { color: var(--muted); font-weight: 700; }
 /* 면책 동의 문구가 낱말 중간에서 안 끊기게 */
 .agree { align-items: center; }
 .agree span { word-break: keep-all; overflow-wrap: break-word; line-height: 1.75; }
+
+/* ══════════════════════════════════════════════════════════════
+   DODO 로고
+   CU 간판처럼 두 톤으로 간다 - 앞 DO 는 흰색, 뒤 DO 는 라임 초록.
+   글꼴 파일을 받지 않고 굵기·자간·네모 마크만으로 만든다
+   (CLAUDE.md "빌드 도구 없음" - 바깥에서 받아오는 것을 늘리지 않는다).
+   ══════════════════════════════════════════════════════════════ */
+.logo { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: var(--cu-green); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+.logo-mark svg { display: block; }
+.logo-word {
+  font-size: 25px; font-weight: 900; letter-spacing: -.6px; color: #fff; line-height: 1;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.logo-word b { color: var(--accent); font-weight: 900; }
+.logo-word .dot { color: var(--accent); }
+.logo-sub {
+  font-size: 12px; font-weight: 800; color: rgba(255,255,255,.9);
+  border-left: 1px solid rgba(255,255,255,.35); padding-left: 9px; margin-left: 2px;
+  letter-spacing: 1px;
+}
+@media (max-width: 560px) {
+  .logo-word { font-size: 21px; }
+  .logo-mark { width: 28px; height: 28px; border-radius: 8px; }
+  .logo-sub { font-size: 11px; padding-left: 7px; }
+}
