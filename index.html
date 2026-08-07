@@ -253,7 +253,9 @@
                           payMethod: '', note: '없음',
                           staffConfirm: false, agreeDamage: false, step: 1, seen: 1 },
                         Store.getDraft());
-  let step = Math.min(TOTAL, Math.max(1, Number(D.step) || 1));
+  // 새로고침하면 확인 화면(7)으로 바로 돌아가지 않는다.
+  // 적은 내용은 그대로 두고, 마지막 입력 단계(6)까지만 되살린다.
+  let step = Math.min(TOTAL - 1, Math.max(1, Number(D.step) || 1));
 
   function keep() {
     D.step = step;
@@ -579,7 +581,8 @@
     $('prevBtn').style.display = step === 1 ? 'none' : '';   // 자리를 비워 두지 않는다
     $('nextBtn').textContent = step < TOTAL ? '다음'
       : (D.payType === '선불' ? formatWon(safePrice()) + ' 받고 접수 완료' : '착불로 접수 완료');
-    if (step === TOTAL) renderConfirm();
+    // 확인 화면 그리다 실패해도 화면이 통째로 멈추지 않게 한다
+    if (step === TOTAL) { try { renderConfirm(); } catch (e) { go(step - 1); return; } }
     window.scrollTo({ top: 0, behavior: 'smooth' });
     keep(); sync();
   }
