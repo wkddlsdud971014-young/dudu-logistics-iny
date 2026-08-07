@@ -43,13 +43,13 @@
     panel.innerHTML = `
       <div class="receipt-card">
         <div class="receipt-title">접수가 완료됐습니다</div>
-        <div class="receipt-tno">${record.trackingNo}</div>
-        <div class="receipt-line">접수 지점 ${record.branchName} / 보내는 분 ${record.senderName}</div>
-        <div class="receipt-line">받는 분 ${record.receiverName} ${record.receiverPhone || ''}</div>
-        <div class="receipt-line">도착 지역 ${record.receiverArea} (${record.regionType} 권역)</div>
-        <div class="receipt-line">물품 ${record.itemName} / 요금 무게 ${record.billedWeightKg}kg / 등급 ${record.sizeGrade}</div>
+        <div class="receipt-tno">${show(record.trackingNo)}</div>
+        <div class="receipt-line">접수 지점 ${show(record.branchName)} / 보내는 분 ${show(record.senderName)}</div>
+        <div class="receipt-line">받는 분 ${show(record.receiverName)} · ${show(record.receiverPhone)}</div>
+        <div class="receipt-line">도착 지역 ${show(record.receiverArea)} (${show(record.regionType)} 권역)</div>
+        <div class="receipt-line">물품 ${show(record.itemName)} / 요금 무게 ${show(record.billedWeightKg, 'kg')} / 등급 ${show(record.sizeGrade)}</div>
         <div class="receipt-price">${formatWon(record.price)}</div>
-        <div class="receipt-line">도착 예정일 ${record.etaDate}</div>
+        <div class="receipt-line">도착 예정일 ${show(record.etaDate)}</div>
       </div>
       <div class="center-actions">
         <a class="btn-main" href="index.html">새 접수</a>

@@ -59,12 +59,17 @@
     // 최근 접수를 맨 위로 올린다 - 창구에서 방금 받은 건을 먼저 찾는다.
     body.innerHTML = rows.slice().reverse().map(s => `
       <tr>
-        <td>${s.trackingNo}</td><td>${s.branchName}</td><td>${s.senderName}</td><td>${s.receiverName}</td><td>${s.receiverPhone || "-"}</td>
-        <td>${s.receiverArea}</td><td>${s.regionType}</td><td>${s.itemName}</td>
-        <td>${s.billedWeightKg}kg</td><td>${s.sizeGrade}</td><td>${formatWon(s.price)}</td><td>${s.etaDate}</td>
+        <td>${show(s.trackingNo)}</td><td>${show(s.branchName)}</td><td>${show(s.senderName)}</td>
+        <td>${show(s.receiverName)}</td><td>${show(s.receiverPhone)}</td>
+        <td>${show(s.receiverArea)}</td><td>${show(s.regionType)}</td><td>${show(s.itemName)}</td>
+        <td>${show(s.billedWeightKg, 'kg')}</td><td>${show(s.sizeGrade)}</td>
+        <td>${formatWon(s.price)}</td><td>${show(s.etaDate)}</td>
       </tr>`).join('');
-    const total = rows.reduce((sum, s) => sum + (s.price || 0), 0);
-    count.textContent = `${rows.length}건 / 합계 ${formatWon(total)}`;
+    const priced = rows.filter(s => typeof s.price === 'number' && isFinite(s.price));
+    const total = priced.reduce((sum, s) => sum + s.price, 0);
+    const noPrice = rows.length - priced.length;
+    count.textContent = `${rows.length}건 / 합계 ${formatWon(total)}`
+      + (noPrice ? ` (요금 없는 건 ${noPrice}건은 합계에서 뺐습니다)` : '');
   }
 </script>
 </body>

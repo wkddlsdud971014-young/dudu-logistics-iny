@@ -2,12 +2,15 @@
    여기만 고치면 네 화면 생김새가 같이 바뀐다. */
 
 :root {
-    --brand: #14508c; --brand-dark: #0d3a66; --accent: #e0692a;
+    /* CU 색감 - 보라 + 라임그린 (편의점 간판 톤). 정확한 CI 값을 주시면
+       이 네 줄만 바꾸면 화면 전체가 따라 바뀐다. */
+    --brand: #6A2C91; --brand-dark: #4A1D6B; --accent: #8CC63F;
+    --brand-soft: #f4edfa;
     --bg: #eef1f4; --card: #ffffff; --border: #d7dde3; --text: #1c2733; --muted: #667485;
-    --ok-bg: #eef7f0; --ok-border: #b9dfc2;
+    --ok-bg: #f4faea; --ok-border: #cfe8a3;
     --bad-bg: #fbeceb; --bad-border: #eab6b0; --bad-text: #c0392b;
     --warn-bg: #fff8e6; --warn-border: #f0d68a; --warn-text: #8a6d1f;
-    --calc-bg: #f5f8fc; --calc-border: #cfe0f0;
+    --calc-bg: #faf7fd; --calc-border: #e0d0ee;
   }
   * { box-sizing: border-box; }
   body {
@@ -17,7 +20,9 @@
     color: var(--text);
     padding: 20px 16px 60px;
   }
-  .page { max-width: 1120px; margin: 0 auto; }
+  /* 위 막대와 아래 내용의 폭을 같게 둔다. 예전엔 막대 1120px / 카드 620px
+   이라 위는 안 움직이고 아래만 좁아 보였다. */
+.page { max-width: 760px; margin: 0 auto; }
   .topbar { background: var(--brand); color: #fff; padding: 16px 22px; border-radius: 14px 14px 0 0; }
   .topbar .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
   .topbar .sub { font-size: 12px; opacity: .85; margin-top: 4px; }
@@ -97,7 +102,8 @@
   .receipt-price { font-size: 24px; font-weight: 800; color: var(--brand-dark); margin: 10px 0; }
 
   .list-section { margin-top: 20px; }
-  .list-section table { width: 100%; border-collapse: collapse; font-size: 11.5px; background: #fff; }
+    .list-section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .list-section table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 11.5px; background: #fff; }
   .list-section th, .list-section td { border: 1px solid var(--border); padding: 6px 5px; text-align: left; }
   .list-section th { background: #eef2f6; }
   .empty-row td { text-align: center; color: var(--muted); padding: 14px; }
@@ -133,13 +139,14 @@
    CU 키오스크식 단계 화면 (회고 13줄 - "지역은 버튼으로 고르게")
    손가락으로 누르는 화면이라 드롭다운을 쓰지 않는다. 버튼은 최소 56px.
    ══════════════════════════════════════════════════════════════ */
-.wizard { max-width: 620px; margin: 0 auto; }
+.wizard { max-width: 100%; }
 
 /* 진행 막대 */
 .steps { display: flex; gap: 6px; margin-bottom: 6px; }
 .steps .dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); transition: background .2s; }
 .steps .dot.done { background: var(--brand); }
 .steps .dot.on { background: var(--accent); }
+.big-price { border-width: 2px !important; }
 .step-count { font-size: 12.5px; color: var(--muted); margin: 0 0 18px; font-weight: 700; }
 
 .step { display: none; }
@@ -154,7 +161,7 @@
   background: #fff; font-size: 15px; font-weight: 700; color: var(--text);
   cursor: pointer; font-family: inherit; line-height: 1.35; transition: all .12s;
 }
-.opt:hover { border-color: var(--brand); background: #f3f8fd; }
+.opt:hover { border-color: var(--brand); background: var(--brand-soft); }
 .opt.on { border-color: var(--brand); background: var(--brand); color: #fff; }
 .opt .opt-sub { display: block; font-size: 11px; font-weight: 600; opacity: .72; margin-top: 3px; }
 .opt-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 18px 0 8px; }
@@ -189,15 +196,41 @@ details.why summary { padding: 13px 14px; cursor: pointer; font-size: 14px; font
 details.why .why-body { padding: 0 14px 12px; }
 
 /* 📱 모바일 */
+/* 태블릿 폭에서도 가장자리 여백을 줄인다 */
+@media (max-width: 800px) {
+  body { padding: 10px 10px 40px; }
+  .topbar { padding: 14px 16px; }
+  .topbar .brand { font-size: 20px; }
+}
 @media (max-width: 560px) {
   body { padding: 0 0 12px; }
   .page { max-width: 100%; }
   .topbar { border-radius: 0; }
   .panel { border-radius: 0; border-left: none; border-right: none; padding: 20px 16px 24px; }
-  .nav a { flex: 1; text-align: center; padding: 12px 4px; font-size: 12.5px; }
+  .nav { padding: 0; }
+  .nav a { flex: 1; text-align: center; padding: 13px 4px; font-size: 12.5px; border-radius: 0; }
+  .topbar { padding: 13px 16px; }
+  .topbar .brand { font-size: 18px; }
+  .topbar .sub { font-size: 11.5px; }
   .step-q { font-size: 19px; }
   .opt-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
   .dim3 { grid-template-columns: 1fr; gap: 10px; }
   .big-price .won { font-size: 34px; }
   .sum-row { font-size: 13.5px; }
 }
+
+/* ── "목록에 없어요" — 화면이 함부로 판단하지 않고 사람에게 넘기는 자리 ── */
+.escape { margin-top: 14px; }
+.escape button {
+  width: 100%; min-height: 46px; border: 1.5px dashed var(--border); border-radius: 12px;
+  background: #fff; color: var(--muted); font-size: 13.5px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+}
+.escape button:hover { border-color: var(--brand); color: var(--brand); }
+.escape-note {
+  display: none; margin-top: 10px; padding: 14px; border-radius: 12px;
+  background: var(--warn-bg); border: 1px solid var(--warn-border);
+  font-size: 13px; line-height: 1.75; color: var(--warn-text);
+}
+.escape-note.on { display: block; }
+.escape-note b { color: var(--text); }
