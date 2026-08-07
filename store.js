@@ -33,8 +33,19 @@ const Store = {
   },
 
   clear() {
-    [this.KEY, this.SEQ, 'dudu.last'].forEach(k => sessionStorage.removeItem(k));
+    [this.KEY, this.SEQ, 'dudu.last', this.DRAFT].forEach(k => sessionStorage.removeItem(k));
   },
+
+  // ── 쓰다 만 접수서 ──────────────────────────────────────
+  // 위쪽 메뉴로 목록을 보러 갔다 돌아와도, 이전 단계로 되돌아가도 적던
+  // 내용이 그대로 남아 있어야 한다. 손님이 두 번 적게 하지 않는다.
+  DRAFT: 'dudu.draft',
+  getDraft() {
+    try { return JSON.parse(sessionStorage.getItem(this.DRAFT)) || {}; }
+    catch (e) { return {}; }
+  },
+  setDraft(obj) { sessionStorage.setItem(this.DRAFT, JSON.stringify(obj || {})); },
+  clearDraft() { sessionStorage.removeItem(this.DRAFT); },
 
   // 운송장 번호 - 규정 §9 (지점코드 2자리 + 접수순번 8자리).
   // 순번을 sessionStorage에 둔다. 페이지가 나뉘면서 calc.js가 화면마다 다시

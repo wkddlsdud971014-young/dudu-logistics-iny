@@ -234,3 +234,42 @@ details.why .why-body { padding: 0 14px 12px; }
 }
 .escape-note.on { display: block; }
 .escape-note b { color: var(--text); }
+
+/* ── 지역 찾기 ─────────────────────────────────────────── */
+.search-box { position: relative; margin-bottom: 12px; }
+.search-box input {
+  width: 100%; padding: 14px 14px 14px 42px; border: 1.5px solid var(--border);
+  border-radius: 12px; font-size: 15.5px; font-family: inherit; background: #fff;
+}
+.search-box input:focus { outline: none; border-color: var(--brand); }
+.search-box .ico { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: .45; font-size: 15px; }
+.search-none {
+  padding: 18px 14px; border: 1.5px dashed var(--border); border-radius: 12px;
+  font-size: 13.5px; color: var(--muted); line-height: 1.8; text-align: center;
+}
+.search-none b { color: var(--text); }
+
+/* ── 접기·펴기 안내 (지점 정보 등) ─────────────────────── */
+details.info { margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+details.info summary { padding: 13px 14px; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--brand); }
+details.info .info-body { padding: 0 14px 14px; font-size: 13px; line-height: 1.9; color: var(--muted); }
+details.info table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+details.info th, details.info td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: left; }
+details.info th { color: var(--muted); font-weight: 700; }
+
+/* ── 도움말 한 줄 ──────────────────────────────────────── */
+.f .tip { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+
+/* ── 진행 막대를 눌러서 단계를 오간다 ──────────────────── */
+.steps .dot { cursor: default; }
+.steps .dot.can { cursor: pointer; }
+.steps .dot.can:hover { opacity: .7; }
+.steps { margin-bottom: 8px; }
+
+/* ── 고른 것을 확실히 보여 준다 ────────────────────────── */
+.picked-line {
+  margin-top: 14px; padding: 13px 14px; border-radius: 12px;
+  background: var(--brand-soft); border: 1.5px solid var(--brand);
+  font-size: 14px; font-weight: 700; color: var(--brand-dark);
+}
+.picked-line .sub { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-top: 4px; }
