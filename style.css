@@ -691,3 +691,7 @@ details.info th { color: var(--muted); font-weight: 700; }
   .paynow { display: none !important; }   /* 스티커에는 안 나오게 */
   .wb-stamp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* 260807 시·도 찾기 - 주소칸과 구별되게 작게 */
+.search-box.mini { margin: 0 0 10px; }
+.search-box.mini input { font-size: 13.5px; padding-top: 11px; padding-bottom: 11px; }

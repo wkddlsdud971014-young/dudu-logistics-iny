@@ -74,32 +74,27 @@
 
     <section class="step" data-step="2">
       <h2 class="step-q">어디로 보내시나요?</h2>
-      <p class="step-sub">주소는 받는 분께 갈 그대로 적어 주세요. 아래에서 시·도를 고르시면 요금이 정해집니다.</p>
-
-      <div class="f">
-        <label for="postalCode">우편번호 <span style="color:var(--muted);font-weight:600">(선택)</span></label>
-        <input type="tel" id="postalCode" placeholder="12345" inputmode="numeric" maxlength="5" autocomplete="off">
-        <p class="tip">아시면 적어 주세요. 몰라도 접수됩니다.</p>
-      </div>
-
-      <div class="f">
-        <label for="receiverDong">받는 곳 주소</label>
-        <div class="search-box" style="margin-bottom:0">
-          <span class="ico">🔍</span>
-          <input type="text" id="receiverDong" autocomplete="off"
-                 placeholder="예: 경남 거제시 아주동 123-45 두두아파트 101동 202호">
-        </div>
-        <p class="tip">동·번지·건물까지 적어 주세요. <b>운송장에 이대로 찍힙니다.</b>
-        적으시는 대로 아래 시·도가 걸러집니다.</p>
-        <div class="err" id="e_receiverDong"></div>
-      </div>
+      <p class="step-sub"><b>먼저 시·도를 고르시고</b>, 그 아래에 자세한 주소를 적어 주세요.</p>
 
       <div class="opt-label">시·도 <span class="auto-tag">요금이 여기서 정해집니다</span></div>
+      <div class="search-box mini">
+        <span class="ico">🔍</span>
+        <input type="text" id="areaQ" autocomplete="off"
+               placeholder="안 보이면 여기에 지역 이름을 쳐 보세요 (예: 거제, 둔산동)">
+      </div>
       <div class="opt-grid" id="areaGrid"></div>
       <div class="opt-label" id="islandLabel">섬 지역 (도서산간)</div>
       <div class="opt-grid" id="islandGrid"></div>
       <div class="search-none" id="areaNone" style="display:none"></div>
       <div id="areaPicked"></div>
+
+      <div class="f" style="margin-top:16px">
+        <label for="receiverDong">받는 곳 자세한 주소</label>
+        <input type="text" id="receiverDong" autocomplete="off"
+               placeholder="시·도를 먼저 골라 주세요">
+        <p class="tip">시·군·구, 동, 번지, 건물까지 적어 주세요. <b>운송장에 이대로 찍힙니다.</b></p>
+        <div class="err" id="e_receiverDong"></div>
+      </div>
     </section>
 
     <section class="step" data-step="3">
@@ -251,7 +246,7 @@
   const TOTAL = 7;
   const STEP_NAME = ['접수 지점', '도착 지역', '무게·크기', '물품 종류', '보내는·받는 분', '결제 방법', '확인'];
   const TEXT_IDS = ['senderName', 'senderPhone', 'receiverName', 'receiverPhone',
-                    'postalCode', 'receiverDong', 'itemName',
+                    'receiverDong', 'itemName',
                     'weightKg', 'widthCm', 'heightCm', 'depthCm'];
 
   const $ = id => document.getElementById(id);
@@ -383,11 +378,16 @@
       '<span class="sub">지금 접수하시면 <b>' + formatDateISO(eta.finalDate) + ' ' +
       WEEKDAY_KO[eta.finalDate.getDay()] + '요일</b>에 도착합니다 · 접수한 ' +
       Rules.dayWords(days) + ' (토·일요일은 빼고 셉니다)</span></div>';
+    $('receiverDong').placeholder = ({
+      '서울': '예: 용산구 한남동 12-3 두두빌라 201호',
+      '경남': '예: 거제시 아주동 123-45 두두아파트 101동 202호',
+      '제주': '예: 제주시 노형동 123-4 두두빌딩 3층',
+    })[v] || ('예: ' + v + ' ○○시 ○○동 12-34 ○○아파트 101동 202호');
     keep(); sync();
   }
 
   // 시·군·구 이름으로도 찾는다. 못 찾으면 화면이 스스로 안내한다.
-  $('receiverDong').addEventListener('input', e => {
+  $('areaQ').addEventListener('input', e => {
     const q = e.target.value;
     const hit = searchAreas(q);
     let shown = 0;
@@ -405,8 +405,9 @@
       $('islandLabel').style.display = '';
       $('areaNone').style.display = 'block';
       $('areaNone').innerHTML =
-        '<b>주소는 그대로 저장됩니다.</b><br>' +
-        '작은 동네 이름까지는 못 알아봅니다. <b>아래에서 시·도만 골라 주세요.</b>';
+        '<b>그 이름은 저희가 못 알아봅니다.</b> 시·군·구까지만 알고 있습니다.<br>' +
+        '<b>위에서 시·도만 골라 주시고</b>, 자세한 주소는 아래 칸에 적어 주세요. ' +
+        '적으신 그대로 운송장에 찍힙니다.';
     } else {
       const anyIsland = hit.some(a => determineRegion(a) === '도서산간');
       $('islandLabel').style.display = anyIsland ? '' : 'none';
@@ -510,10 +511,6 @@
     })));
 
   // 5·확인 단계 입력 ---------------------------------------------
-  $('postalCode').addEventListener('input', e => {
-    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
-    keep();
-  });
   ['receiverPhone', 'senderPhone'].forEach(id => $(id).addEventListener('input', e => {
     e.target.value = formatPhone(e.target.value);
     keep(); sync();
@@ -740,7 +737,6 @@
         senderPhone: val('senderPhone'),
         payType: D.payType,
       payMethod: D.payMethod || '',
-      postalCode: val('postalCode'),
         deliveryNote: D.note || '없음',
         channel: '방문접수',
         receiverName: val('receiverName'),

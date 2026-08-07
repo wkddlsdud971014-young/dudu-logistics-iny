@@ -100,7 +100,7 @@
       '</div><div class="receipt-rows">' +
         row('보내는 분', show(r.senderName)) +
         row('받는 분', show(r.receiverName)) +
-        row('받는 곳', (r.postalCode ? '[' + r.postalCode + '] ' : '') + show(r.receiverArea) + ' ' + show(r.receiverDong)) +
+        row('받는 곳', show(r.receiverArea) + ' ' + show(r.receiverDong)) +
         row('물품', show(r.itemName) + ' · ' + show(r.category)) +
         row('요금 무게', show(r.billedWeightKg, 'kg') + ' · ' + show(r.sizeGrade)) +
         row('요금', formatWon(r.price) + ' · ' + show(r.payType) + (r.payMethod ? ' (' + r.payMethod + ')' : '')) +
