@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>두두택배 - 접수 완료</title>
 <!--
-  두두택배 - 접수 완료 화면
+  두두택배 - 접수 완료 (영수증)
   =================================================
-  네 화면 중 두 번째. 방금 접수한 한 건만 크게 보여준다.
-  운송장 번호를 직원이 옮겨 적어야 해서 제일 크게 뒀다.
-  여기서는 계산도 저장도 하지 않는다 - store.js 에서 읽어 그리기만 한다.
+  항목과 내용을 줄맞춰 찍는다. 글자를 이어 붙이면 눈으로 못 따라간다.
+  운송장 번호를 제일 크게 두고, 앞 두 자리(지점 코드)는 색을 달리해
+  어디서 접수했는지 번호만 봐도 알게 했다.
+  값이 비어 있어도 '-' 로 찍고 멈추지 않는다.
 -->
 <link rel="stylesheet" href="style.css">
 </head>
@@ -24,37 +25,75 @@
     <a href="list.html">접수 목록</a>
     <a href="track.html">운송장 조회</a>
   </nav>
-
   <div class="panel" id="panel"></div>
 </div>
 
 <script src="calc.js"></script>
 <script src="store.js"></script>
+<script src="rules.js"></script>
 <script>
   const record = Store.last();
   const panel = document.getElementById('panel');
 
+  function row(k, v) {
+    return '<div class="rrow"><span class="rk">' + k + '</span><span class="rv">' + v + '</span></div>';
+  }
+
   if (!record) {
-    // 주소창으로 곧장 들어왔거나 세션이 비었을 때. 빈 영수증을 그리지 않는다.
-    panel.innerHTML = `
-      <div class="empty-state">아직 접수한 건이 없습니다.</div>
-      <div class="center-actions"><a class="btn-main" href="index.html">접수하러 가기</a></div>`;
+    panel.innerHTML =
+      '<div class="empty-state">아직 접수한 건이 없습니다.</div>' +
+      '<div class="center-actions"><a class="btn-main" href="index.html">접수하러 가기</a></div>';
   } else {
-    panel.innerHTML = `
-      <div class="receipt-card">
-        <div class="receipt-title">접수가 완료됐습니다</div>
-        <div class="receipt-tno">${show(record.trackingNo)}</div>
-        <div class="receipt-line">접수 지점 ${show(record.branchName)} / 보내는 분 ${show(record.senderName)}</div>
-        <div class="receipt-line">받는 분 ${show(record.receiverName)} · ${show(record.receiverPhone)}</div>
-        <div class="receipt-line">도착 지역 ${show(record.receiverArea)} (${show(record.regionType)} 권역)</div>
-        <div class="receipt-line">물품 ${show(record.itemName)} / 요금 무게 ${show(record.billedWeightKg, 'kg')} / 등급 ${show(record.sizeGrade)}</div>
-        <div class="receipt-price">${formatWon(record.price)}</div>
-        <div class="receipt-line">도착 예정일 ${show(record.etaDate)}</div>
-      </div>
-      <div class="center-actions">
-        <a class="btn-main" href="index.html">새 접수</a>
-        <a class="btn-sub" href="list.html">접수 목록 보기</a>
-      </div>`;
+    const no = String(record.trackingNo || '');
+    const days = ETA_BUSINESS_DAYS[record.regionType];
+
+    panel.innerHTML =
+      '<div class="receipt">' +
+        '<div class="receipt-top">' +
+          '<div class="receipt-ok">접수가 완료되었습니다</div>' +
+          '<div class="receipt-no-label">운송장 번호</div>' +
+          '<div class="receipt-no"><span class="head">' + no.slice(0, 2) + '</span>' + no.slice(2) + '</div>' +
+          '<div class="receipt-no-hint">앞 두 자리 ' + no.slice(0, 2) + ' = ' + show(record.branchName) + '</div>' +
+        '</div>' +
+
+        '<div class="rgroup">보내는 분</div>' +
+        '<div class="receipt-rows">' +
+          row('이름', show(record.senderName)) +
+          row('접수 지점', show(record.branchName)) +
+        '</div>' +
+
+        '<div class="rgroup">받는 분</div>' +
+        '<div class="receipt-rows">' +
+          row('이름', show(record.receiverName)) +
+          row('전화', show(record.receiverPhone)) +
+          row('지역', show(record.receiverArea)) +
+          row('권역', show(record.regionType)) +
+        '</div>' +
+
+        '<div class="rgroup">보내는 물건</div>' +
+        '<div class="receipt-rows">' +
+          row('물품', show(record.itemName)) +
+          row('실제 무게', show(toOneDecimal(record.weightKg), 'kg')) +
+          row('크기', show(record.widthCm) + ' × ' + show(record.heightCm) + ' × ' + show(record.depthCm) + ' cm') +
+          row('요금에 쓴 무게', show(record.billedWeightKg, 'kg')) +
+          row('크기 등급', show(record.sizeGrade)) +
+        '</div>' +
+
+        '<div class="receipt-total"><span class="tk">받은 금액</span>' +
+          '<span class="tv">' + formatWon(record.price) + '</span></div>' +
+        '<div class="receipt-eta">도착 예정일<br><b>' + show(record.etaDate) + '</b>' +
+          (days ? '<br>접수한 ' + Rules.dayWords(days) + ' (토·일요일은 빼고 셉니다)' : '') +
+        '</div>' +
+        '<div class="receipt-cut"></div>' +
+      '</div>' +
+
+      '<button type="button" class="rules-open" onclick="Rules.open(record)">' +
+        '이 요금이 어떻게 나왔는지 규정에서 확인하기</button>' +
+
+      '<div class="center-actions">' +
+        '<a class="btn-main" href="index.html">새 접수</a>' +
+        '<a class="btn-sub" href="list.html">접수 목록 보기</a>' +
+      '</div>';
   }
 </script>
 </body>

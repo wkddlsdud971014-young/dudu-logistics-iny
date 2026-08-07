@@ -41,12 +41,14 @@
     </div>
     <div class="center-actions">
       <a class="btn-main" href="index.html">새 접수</a>
+      <button type="button" class="btn-sub" onclick="Rules.open()">요금 규정 보기</button>
     </div>
   </div>
 </div>
 
 <script src="calc.js"></script>
 <script src="store.js"></script>
+<script src="rules.js"></script>
 <script>
   const rows = Store.list();
   const body = document.getElementById('listBody');

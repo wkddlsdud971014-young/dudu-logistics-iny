@@ -273,3 +273,104 @@ details.info th { color: var(--muted); font-weight: 700; }
   font-size: 14px; font-weight: 700; color: var(--brand-dark);
 }
 .picked-line .sub { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+
+/* ══════════════════════════════════════════════════════════════
+   규정 보기 창
+   ══════════════════════════════════════════════════════════════ */
+.modal-back {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(20, 12, 30, .55); padding: 24px 16px;
+  align-items: center; justify-content: center;
+}
+.modal-back.on { display: flex; }
+.modal {
+  background: var(--card); border-radius: 18px; width: 100%; max-width: 640px;
+  max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 18px 48px rgba(0,0,0,.28);
+}
+.modal-head {
+  display: flex; align-items: flex-start; gap: 12px; padding: 20px 22px;
+  background: var(--brand); color: #fff;
+}
+.modal-title { font-size: 18px; font-weight: 800; }
+.modal-sub { font-size: 12.5px; opacity: .85; margin-top: 4px; line-height: 1.5; }
+.modal-x {
+  margin-left: auto; background: rgba(255,255,255,.16); border: none; color: #fff;
+  width: 34px; height: 34px; border-radius: 10px; font-size: 15px; cursor: pointer; flex-shrink: 0;
+}
+.modal-x:hover { background: rgba(255,255,255,.3); }
+.modal-body { overflow-y: auto; padding: 20px 22px; -webkit-overflow-scrolling: touch; }
+.modal-foot { padding: 14px 22px; border-top: 1px solid var(--border); }
+.modal-foot .btn-main { width: 100%; }
+
+.rsec { margin-bottom: 26px; }
+.rsec h3 { display: flex; align-items: center; gap: 9px; font-size: 15.5px; font-weight: 800; margin: 0 0 11px; color: var(--text); }
+.rno {
+  width: 24px; height: 24px; border-radius: 8px; background: var(--brand); color: #fff;
+  font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.rtab { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rtab th, .rtab td { padding: 9px 8px; border: 1px solid var(--border); text-align: left; }
+.rtab th { background: #f6f3f9; color: var(--muted); font-weight: 700; font-size: 12px; }
+.rtab tr.hl td { background: #fdf6d8; }
+.rtab td.hl2 { background: var(--accent); color: #23330c; font-weight: 800; }
+.rbox { padding: 14px; background: var(--brand-soft); border-radius: 11px; font-size: 13.5px; line-height: 1.85; }
+.rlist { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.95; }
+.rnote { font-size: 12.5px; color: var(--muted); line-height: 1.8; margin: 9px 0 0; }
+.rnote2 { font-size: 12px; color: var(--muted); }
+.rask { color: var(--warn-text); font-size: 11.5px; }
+.rmine { padding: 13px 15px; border-radius: 12px; background: #fdf6d8; border: 1.5px solid #e8d489; margin-bottom: 22px; }
+.rmine-t { font-size: 13.5px; font-weight: 700; }
+.rmine-s { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.rtno { font-size: 24px; font-weight: 800; color: var(--brand); letter-spacing: 2px; }
+.rtno2 { font-size: 24px; font-weight: 800; color: var(--muted); letter-spacing: 2px; }
+
+/* 규정 열기 단추 */
+.rules-open {
+  display: block; width: 100%; margin-top: 14px; min-height: 48px;
+  border: 1.5px solid var(--brand); border-radius: 12px; background: #fff;
+  color: var(--brand); font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer;
+}
+.rules-open:hover { background: var(--brand-soft); }
+.rules-link {
+  background: none; border: none; color: var(--brand); font-size: 12.5px; font-weight: 700;
+  text-decoration: underline; cursor: pointer; font-family: inherit; padding: 0;
+}
+
+@media (max-width: 560px) {
+  .modal-back { padding: 0; }
+  .modal { max-width: 100%; max-height: 100vh; height: 100%; border-radius: 0; }
+  .rtab { font-size: 12px; }
+  .rtab th, .rtab td { padding: 7px 5px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   영수증 - 항목과 내용을 줄맞춰 찍는다. 글자를 늘어놓지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+.receipt {
+  background: #fff; border: 1px solid var(--border); border-radius: 14px;
+  overflow: hidden; max-width: 420px; margin: 0 auto;
+}
+.receipt-top { padding: 20px 18px 16px; text-align: center; background: var(--brand-soft); border-bottom: 1px dashed var(--border); }
+.receipt-ok { font-size: 14px; font-weight: 700; color: var(--brand-dark); }
+.receipt-no-label { font-size: 11.5px; color: var(--muted); margin-top: 12px; letter-spacing: .5px; }
+.receipt-no { font-size: 27px; font-weight: 800; color: var(--brand); letter-spacing: 2.5px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.receipt-no .head { color: var(--brand-dark); }
+.receipt-no-hint { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+
+.receipt-rows { padding: 4px 18px; }
+.rrow { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid #f0eef3; font-size: 13.5px; }
+.rrow:last-child { border-bottom: none; }
+.rrow .rk { color: var(--muted); font-weight: 600; flex-shrink: 0; }
+.rrow .rv { font-weight: 700; text-align: right; word-break: break-all; }
+.rgroup { padding: 12px 18px 4px; font-size: 11.5px; font-weight: 800; color: var(--brand); letter-spacing: .4px; }
+
+.receipt-total { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 18px; border-top: 2px dashed var(--border); background: var(--ok-bg); }
+.receipt-total .tk { font-size: 14px; font-weight: 700; }
+.receipt-total .tv { font-size: 27px; font-weight: 800; color: var(--brand-dark); }
+.receipt-eta { padding: 12px 18px 18px; text-align: center; font-size: 13px; background: var(--ok-bg); }
+.receipt-eta b { font-size: 15px; }
+.receipt-cut { height: 14px; background:
+  radial-gradient(circle at 7px 0, transparent 7px, var(--card) 7px) repeat-x;
+  background-size: 14px 14px; }
+@media (max-width: 560px) { .receipt { max-width: 100%; } .receipt-no { font-size: 23px; letter-spacing: 1.5px; } }

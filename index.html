@@ -37,14 +37,23 @@
 
     <section class="step" data-step="1">
       <h2 class="step-q">어디에서 접수하시나요?</h2>
-      <p class="step-sub">운송장 번호 앞 두 자리가 이 지점 코드가 됩니다 (규정 §9).</p>
+      <p class="step-sub">고르신 지점이 운송장 번호 앞 두 자리가 됩니다.</p>
       <div class="opt-grid" id="branchGrid"></div>
       <div id="branchPicked"></div>
       <details class="info">
         <summary>지점 안내 · 소재지와 허브 보기</summary>
         <div class="info-body">
           <table id="branchTable"></table>
-          접수는 위 여섯 지점에서 받고, 배송은 전국으로 나갑니다 (규정 §1).
+          접수는 위 여섯 지점에서 받고, 배송은 전국으로 나갑니다.
+        </div>
+      </details>
+      <details class="info">
+        <summary>찾는 지점이 없으신가요?</summary>
+        <div class="info-body">
+          두두택배는 위 여섯 지점에서 접수를 받습니다.<br>
+          다른 지역에서 보내시려면 가장 가까운 지점으로 와 주세요 — 배송은 전국으로 나갑니다.<br><br>
+          <b>고객센터 1588-0000</b> · 평일 9시–18시<br>
+          지점 신설·제휴 문의도 같은 번호로 받습니다.
         </div>
       </details>
     </section>
@@ -85,7 +94,7 @@
 
     <section class="step" data-step="4">
       <h2 class="step-q">무엇을 보내시나요?</h2>
-      <p class="step-sub">무게와 크기로 요금이 정해집니다 (규정 §3·§4).</p>
+      <p class="step-sub">무게와 크기로 요금이 정해집니다.</p>
       <div class="f">
         <label for="itemName">물품명</label>
         <input type="text" id="itemName" placeholder="이불" autocomplete="off">
@@ -121,6 +130,9 @@
         <summary>왜 이 요금인가요?</summary>
         <div class="why-body" id="whyBody"></div>
       </details>
+      <button type="button" class="rules-open" onclick="openRules()">
+        전체 요금 규정 보기 · 내 건이 어디에 해당하는지 표시해 드립니다
+      </button>
     </section>
 
     <div class="step-actions">
@@ -132,6 +144,7 @@
 
 <script src="calc.js"></script>
 <script src="store.js"></script>
+<script src="rules.js"></script>
 <script>
   const TOTAL = 5;
   const STEP_NAME = ['접수 지점', '도착 지역', '보내는 분·받는 분', '물품·무게·크기', '확인'];
@@ -204,8 +217,9 @@
     const days = ETA_BUSINESS_DAYS[region];
     const eta = addBusinessDaysTrace(new Date(), days);
     $('areaPicked').innerHTML = '<div class="picked-line">' + v + ' · ' + region + ' 권역' +
-      '<span class="sub">접수 후 <b>' + days + '영업일</b> 걸립니다 · 지금 접수하시면 ' +
-      formatDateISO(eta.finalDate) + '(' + WEEKDAY_KO[eta.finalDate.getDay()] + ') 도착 예정</span></div>';
+      '<span class="sub">지금 접수하시면 <b>' + formatDateISO(eta.finalDate) + ' ' +
+      WEEKDAY_KO[eta.finalDate.getDay()] + '요일</b>에 도착합니다 · 접수한 ' +
+      Rules.dayWords(days) + ' (토·일요일은 빼고 셉니다)</span></div>';
     keep(); sync();
   }
 
@@ -262,7 +276,7 @@
       const ban = checkBanned(val('itemName'));
       if (ban.hardHits.length) {
         errs.itemName = '접수 불가 품목입니다 — ' + ban.hardHits[0].category +
-          ' "' + ban.hardHits[0].keyword + '" (규정 §5).';
+          ' "' + ban.hardHits[0].keyword + '" 은(는) 보낼 수 없습니다.';
       } else if (ban.softHits.length && !$('staffConfirm').checked) {
         errs.itemName = '직원 확인 체크가 필요합니다.';
       }
@@ -276,8 +290,8 @@
         const bw = Math.max(w.n, dims.reduce((t, d) => t * d.n, 1) / 6000);
         if (!determineGrade(sum, bw)) {
           errs.dims = '대형 상한을 넘었습니다 — 세 변의 합 ' + sum + 'cm, 요금 무게 ' +
-            bw.toFixed(2) + 'kg. 규정 §3에 따라 이 크기는 접수할 수 없습니다. ' +
-            '상자를 나눠 두 건으로 접수해 주세요.';
+            bw.toFixed(2) + 'kg 입니다.<br>대형(세 변의 합 160cm · 25kg)까지가 접수할 수 있는 크기입니다. ' +
+            '상자를 나눠 두 건으로 보내 주세요.';
         }
       }
     }
@@ -297,11 +311,10 @@
       if (ban.hardHits.length) {
         const h = ban.hardHits[0];
         box.innerHTML = '<span class="badge bad">접수 불가 — ' + h.category + ' "' + h.keyword +
-          '" (규정 §5). 요금 계산 전에 거절합니다.</span>';
+          '" 은(는) 보낼 수 없는 물건입니다.</span>';
         soft.style.display = 'none';
       } else if (ban.softHits.length) {
-        box.innerHTML = '<span class="badge warn">직원 확인이 필요한 낱말이 있습니다 ' +
-          '(규정 §5 "애매하면 사람에게 넘깁니다").</span>';
+        box.innerHTML = '<span class="badge warn">물건에 따라 달라서 직원이 한 번 봐야 합니다.</span>';
         soft.style.display = 'block';
         $('softConfirmText').innerHTML = ban.softHits
           .map(h => '・<b>' + h.keyword + '</b> — ' + h.ask).join('<br>');
@@ -339,7 +352,7 @@
     document.querySelectorAll('.step').forEach(s =>
       s.classList.toggle('on', Number(s.dataset.step) === step));
     $('stepCount').textContent = step + ' / ' + TOTAL + ' · ' + STEP_NAME[step - 1];
-    $('prevBtn').style.visibility = step === 1 ? 'hidden' : 'visible';
+    $('prevBtn').style.display = step === 1 ? 'none' : '';   // 자리를 비워 두지 않는다
     $('nextBtn').textContent = step === TOTAL ? '접수 완료' : '다음';
     if (step === TOTAL) renderConfirm();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -361,9 +374,10 @@
     const d = draft();
     $('bigPrice').innerHTML =
       '<div class="won">' + formatWon(d.price) + '</div>' +
-      '<div class="eta">' + d.grade + ' · ' + d.region + ' 권역 · ' +
-      ETA_BUSINESS_DAYS[d.region] + '영업일 · 도착 예정 ' +
-      formatDateISO(d.eta.finalDate) + '(' + WEEKDAY_KO[d.eta.finalDate.getDay()] + ')</div>';
+      '<div class="eta">' + d.grade + ' · ' + d.region + ' 권역<br>' +
+      '<b>' + formatDateISO(d.eta.finalDate) + ' ' + WEEKDAY_KO[d.eta.finalDate.getDay()] +
+      '요일</b> 도착 예정 · 접수한 ' + Rules.dayWords(ETA_BUSINESS_DAYS[d.region]) +
+      ' (토·일요일 제외)</div>';
 
     const rows = [
       ['접수 지점', D.branch + ' (' + branchCodeOf(D.branch) + ')'],
@@ -384,19 +398,19 @@
       (l.pass ? '<b>통과 → 이 등급</b>'
         : (!l.sumOk && !l.wtOk ? '둘 다 초과' : !l.sumOk ? '세변합 초과' : '무게 초과'))).join('<br>');
     const etaLines = d.eta.trace.map(t => formatDateISO(t.date) + '(' + WEEKDAY_KO[t.dow] + ') — ' +
-      (t.isWeekend ? '주말이라 제외' : '영업일 ' + t.countedAt + '일째')).join('<br>');
+      (t.isWeekend ? '주말이라 세지 않음' : t.countedAt + '일째')).join('<br>');
 
     $('whyBody').innerHTML =
-      '<div class="calc-step"><div class="calc-step-title">1. 부피 무게 (규정 §4)</div><div class="calc-step-body">' +
+      '<div class="calc-step"><div class="calc-step-title">1. 부피 무게</div><div class="calc-step-body">' +
         d.x + ' × ' + d.y + ' × ' + d.z + ' ÷ 6000 = <b>' + d.vol.toFixed(2) + 'kg</b></div></div>' +
-      '<div class="calc-step"><div class="calc-step-title">2. 요금 무게 (규정 §4)</div><div class="calc-step-body">' +
+      '<div class="calc-step"><div class="calc-step-title">2. 요금에 쓰는 무게</div><div class="calc-step-body">' +
         '실제 ' + toOneDecimal(d.w) + 'kg 과 부피 ' + d.vol.toFixed(2) + 'kg 중 큰 값 = <b>' +
         d.billed.toFixed(2) + 'kg</b></div></div>' +
-      '<div class="calc-step"><div class="calc-step-title">3. 크기 등급 (규정 §3)</div><div class="calc-step-body">' +
+      '<div class="calc-step"><div class="calc-step-title">3. 크기</div><div class="calc-step-body">' +
         gradeLines + '</div></div>' +
-      '<div class="calc-step"><div class="calc-step-title">4. 요금 (규정 §3 요금표)</div><div class="calc-step-body">' +
+      '<div class="calc-step"><div class="calc-step-title">4. 요금표에서 찾기</div><div class="calc-step-body">' +
         d.grade + ' × ' + d.region + ' = <b>' + formatWon(d.price) + '</b></div></div>' +
-      '<div class="calc-step"><div class="calc-step-title">5. 도착 예정일 (규정 §6)</div><div class="calc-step-body">' +
+      '<div class="calc-step"><div class="calc-step-title">5. 도착일 세기</div><div class="calc-step-body">' +
         etaLines + '</div></div>';
   }
 
@@ -421,6 +435,13 @@
     });
     Store.clearDraft();          // 접수했으니 쓰다 만 내용은 비운다
     location.href = 'done.html';
+  }
+
+  // 규정 창 - 지금 적은 내용에 해당하는 칸을 노랗게 짚어 준다
+  function openRules() {
+    const d = (D.branch && D.area && val('weightKg') && val('widthCm')) ? draft() : {};
+    Rules.open({ branchName: D.branch, receiverArea: D.area,
+                 regionType: d.region, sizeGrade: d.grade });
   }
 
   $('prevBtn').onclick = () => go(step - 1);
